@@ -43,3 +43,29 @@ export interface Elevator {
   // Whether the elevator doors are open or closed
   doorsOpen: boolean;
 }
+
+/**
+ * Simple TypeScript Interface for Building
+ * This defines what our building should look like
+ */
+
+// This interface defines what a building should look like
+export interface Building {
+  // Total number of floors in the building
+  totalFloors: number;
+
+  // Total number of elevators in the building
+  totalElevators: number;
+
+  // Array of all elevators in the building
+  elevators: Elevator[];
+
+  // Array of all pending requests waiting to be served
+  pendingRequests: Request[];
+
+  // Current simulation time (in seconds)
+  currentTime: number;
+
+  // Whether the simulation is currently running
+  isRunning: boolean;
+}
