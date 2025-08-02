@@ -20,7 +20,7 @@ export class ElevatorClass implements Elevator {
   public doorsOpen: boolean;
 
   // Additional properties for the class
-  public targetFloor?: number; // Which floor the elevator is heading to
+  public targetFloor: number | undefined = undefined; // Which floor the elevator is heading to
   public isMoving: boolean = false; // Whether the elevator is currently moving
   public assignedRequests: string[] = []; // IDs of requests assigned to this elevator
 
