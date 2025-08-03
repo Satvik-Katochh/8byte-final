@@ -1,0 +1,199 @@
+/**
+ * StatisticsPanel.css - Styles for the statistics panel component
+ */
+
+.statistics-panel {
+  margin-top: 20px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  width: 50px;
+  text-align: center;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffd700;
+}
+
+.performance-summary {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.summary-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.summary-content {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  min-width: 120px;
+}
+
+.summary-item span:first-child {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.summary-item span:last-child {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Performance indicators */
+.summary-item .good {
+  color: #4caf50;
+}
+
+.summary-item .fair {
+  color: #ff9800;
+}
+
+.summary-item .poor {
+  color: #f44336;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+
+  .stat-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .stat-icon {
+    font-size: 1.5rem;
+    width: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .summary-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .summary-item {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* Animation for real-time updates */
+@keyframes highlight {
+  0% {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    background: rgba(255, 215, 0, 0.2);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.stat-item.updating {
+  animation: highlight 0.5s ease;
+}
+
+/* Special styling for performance indicators */
+.stat-item:nth-child(7) .stat-value {
+  font-size: 1.1rem;
+}
+
+/* Hover effects for interactive elements */
+.stat-item:hover .stat-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Loading state */
+.stat-item.loading .stat-value {
+  opacity: 0.5;
+}
+
+.stat-item.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

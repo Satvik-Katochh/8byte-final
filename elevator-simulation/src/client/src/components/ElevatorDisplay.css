@@ -1,0 +1,264 @@
+/**
+ * ElevatorDisplay.css - Styles for the elevator display component
+ */
+
+.elevator-display {
+  margin: 20px 0;
+}
+
+.building-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.building {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.floor-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 40px;
+}
+
+.floor-row:last-child {
+  border-bottom: none;
+}
+
+.floor-number {
+  width: 50px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #ffd700;
+}
+
+.elevator-shafts {
+  display: flex;
+  gap: 8px;
+  margin: 0 15px;
+  flex: 1;
+}
+
+.elevator-shaft {
+  width: 80px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.empty-shaft {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1.2rem;
+}
+
+.elevator {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.elevator.moving {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  animation: pulse 1s infinite;
+}
+
+.elevator-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.elevator-id {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.elevator-direction {
+  font-size: 1rem;
+}
+
+.elevator-doors {
+  font-size: 0.8rem;
+}
+
+.elevator-passengers {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.elevator-target {
+  font-size: 0.7rem;
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.floor-buttons {
+  display: flex;
+  gap: 5px;
+  margin-left: 10px;
+}
+
+.floor-button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.floor-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.floor-button.up {
+  background: rgba(76, 175, 80, 0.3);
+}
+
+.floor-button.down {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+.ground-floor {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  background: rgba(139, 69, 19, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 69, 19, 0.5);
+}
+
+.ground-label {
+  font-weight: 600;
+  color: #8b4513;
+  min-width: 100px;
+  text-align: center;
+}
+
+.ground-elevators {
+  display: flex;
+  gap: 8px;
+}
+
+.ground-elevator-shaft {
+  width: 80px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(139, 69, 19, 0.5);
+  border-radius: 4px;
+  background: rgba(139, 69, 19, 0.2);
+}
+
+.elevator-shaft-label {
+  font-weight: 600;
+  color: #8b4513;
+  font-size: 0.9rem;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.legend-item span {
+  font-size: 1.1rem;
+}
+
+/* Animation for moving elevators */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .building {
+    max-height: 300px;
+  }
+  
+  .elevator-shafts {
+    gap: 4px;
+  }
+  
+  .elevator-shaft {
+    width: 60px;
+  }
+  
+  .floor-number {
+    width: 40px;
+    font-size: 1rem;
+  }
+  
+  .legend {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Scrollbar styling */
+.building::-webkit-scrollbar {
+  width: 8px;
+}
+
+.building::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.building::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.building::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+} 
