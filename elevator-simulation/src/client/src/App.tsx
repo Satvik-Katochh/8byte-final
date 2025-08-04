@@ -32,6 +32,7 @@ function App() {
     changeFrequency,
     generateRequest,
     onAutoRequestGenerated,
+    onRequestsCompleted,
   } = useWebSocket();
 
   // Application state
@@ -63,41 +64,6 @@ function App() {
     averageWaitTime: 0,
   };
 
-  // Track completed requests
-  const [completedRequestCount, setCompletedRequestCount] = useState(0);
-
-  // Update completed requests when simulation state changes
-  useEffect(() => {
-    if (simulationState.completedRequests > completedRequestCount) {
-      const newCompleted =
-        simulationState.completedRequests - completedRequestCount;
-      setCompletedRequestCount(simulationState.completedRequests);
-
-      // Mark some requests as completed (simplified)
-      setRequestLog((prev) => {
-        const updated = [...prev];
-        const pendingRequests = updated.filter((r) => r.status === "pending");
-
-        // Mark some pending requests as completed
-        for (
-          let i = 0;
-          i < Math.min(newCompleted, pendingRequests.length);
-          i++
-        ) {
-          const index = updated.findIndex((r) => r.status === "pending");
-          if (index !== -1) {
-            updated[index] = {
-              ...updated[index],
-              status: "completed" as const,
-            };
-          }
-        }
-
-        return updated;
-      });
-    }
-  }, [simulationState.completedRequests, completedRequestCount]);
-
   // Handle auto-request notifications
   useEffect(() => {
     if (onAutoRequestGenerated) {
@@ -125,6 +91,66 @@ function App() {
       onAutoRequestGenerated(handleAutoRequest);
     }
   }, [onAutoRequestGenerated, totalFloors]);
+
+  // Handle request completion notifications
+  useEffect(() => {
+    if (onRequestsCompleted) {
+      const handleRequestCompletion = (data: {
+        count: number;
+        timestamp: string;
+      }) => {
+        console.log(
+          `✅ Request completion notification: ${data.count} request(s)`
+        );
+
+        // Mark some pending requests as completed
+        setRequestLog((prev) => {
+          const updated = [...prev];
+          const pendingRequests = updated.filter((r) => r.status === "pending");
+
+          // Mark some pending requests as completed (prioritize manual requests)
+          const manualRequests = pendingRequests.filter(
+            (r) => r.type === "manual"
+          );
+          const autoRequests = pendingRequests.filter((r) => r.type === "auto");
+
+          let completedCount = 0;
+
+          // First complete manual requests
+          for (const request of manualRequests) {
+            if (completedCount < data.count) {
+              const index = updated.findIndex((r) => r.id === request.id);
+              if (index !== -1) {
+                updated[index] = {
+                  ...updated[index],
+                  status: "completed" as const,
+                };
+                completedCount++;
+              }
+            }
+          }
+
+          // Then complete auto requests
+          for (const request of autoRequests) {
+            if (completedCount < data.count) {
+              const index = updated.findIndex((r) => r.id === request.id);
+              if (index !== -1) {
+                updated[index] = {
+                  ...updated[index],
+                  status: "completed" as const,
+                };
+                completedCount++;
+              }
+            }
+          }
+
+          return updated;
+        });
+      };
+
+      onRequestsCompleted(handleRequestCompletion);
+    }
+  }, [onRequestsCompleted]);
 
   /**
    * Start the simulation
@@ -409,7 +435,7 @@ function App() {
                         ? "🔴"
                         : "🔵"}{" "}
                       {request.status === "completed"
-                        ? "COMPLETED"
+                        ? `COMPLETED (${request.type.toUpperCase()})`
                         : request.type.toUpperCase()}
                     </span>
                     <span

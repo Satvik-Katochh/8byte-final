@@ -399,9 +399,12 @@ Request: Floor 3 → Floor 4
 ```
 🔴 MANUAL Floor 3 → Floor 4 [10:30:15 AM]
 🔵 AUTO Floor 1 → Floor 5 [10:30:16 AM]
-✅ COMPLETED Floor 3 → Floor 4 [10:30:15 AM]  ← Shows completion!
+✅ COMPLETED (MANUAL) Floor 3 → Floor 4 [10:30:15 AM]  ← Shows completion!
 🔵 AUTO Floor 2 → Floor 4 [10:30:17 AM]
+✅ COMPLETED (AUTO) Floor 1 → Floor 5 [10:30:16 AM]  ← Shows completion!
 ```
+
+**Note:** The UI now properly shows when your manual requests are completed. The system prioritizes completing manual requests first, then auto requests.
 
 #### **Test Scenario:**
 
@@ -782,8 +785,9 @@ npm run dev:client
 ```
 🔴 MANUAL Floor 3 → Floor 4 [10:30:15 AM]
 🔵 AUTO Floor 1 → Floor 5 [10:30:16 AM]
-✅ COMPLETED Floor 3 → Floor 4 [10:30:15 AM]  ← Shows completion!
+✅ COMPLETED (MANUAL) Floor 3 → Floor 4 [10:30:15 AM]  ← Shows completion!
 🔵 AUTO Floor 2 → Floor 4 [10:30:17 AM]
+✅ COMPLETED (AUTO) Floor 1 → Floor 5 [10:30:16 AM]  ← Shows completion!
 ```
 
 #### **Test Scenario Results:**

@@ -20,6 +20,7 @@ export class RequestClass implements Request {
   // Additional properties for the class
   public isAssigned: boolean = false; // Whether an elevator has been assigned
   public assignedElevatorId?: number; // Which elevator is handling this request
+  public isManual: boolean = false; // Whether this request was manually generated
 
   /**
    * Constructor - Creates a new request

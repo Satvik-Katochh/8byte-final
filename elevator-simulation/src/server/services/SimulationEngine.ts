@@ -301,8 +301,11 @@ export class SimulationEngine {
           // Increment completed requests
           this.completedRequests++;
 
+          // Determine if this was a manual or auto request
+          const requestType = request.isManual ? "MANUAL" : "AUTO";
+
           console.log(
-            `Request completed: Floor ${request.fromFloor} → Floor ${request.toFloor} by Elevator ${elevator.id}`
+            `✅ ${requestType} request completed: Floor ${request.fromFloor} → Floor ${request.toFloor} by Elevator ${elevator.id}`
           );
         }
       }
@@ -387,8 +390,11 @@ export class SimulationEngine {
    */
   public addManualRequest(fromFloor: number, toFloor: number): void {
     const request = new RequestClass(fromFloor, toFloor, this.currentTime);
+    request.isManual = true; // Mark as manual request
     this.pendingRequests.push(request);
     this.totalRequests++;
-    console.log(`Manual request added: Floor ${fromFloor} → Floor ${toFloor}`);
+    console.log(
+      `📋 Manual request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} }`
+    );
   }
 }

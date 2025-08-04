@@ -153,11 +153,24 @@ export const useWebSocket = () => {
   );
 
   // Handle auto-request notifications
-  const onAutoRequestGenerated = useCallback((callback: (data: { count: number; timestamp: string }) => void) => {
-    if (socketRef.current) {
-      socketRef.current.on("auto-request-generated", callback);
-    }
-  }, []);
+  const onAutoRequestGenerated = useCallback(
+    (callback: (data: { count: number; timestamp: string }) => void) => {
+      if (socketRef.current) {
+        socketRef.current.on("auto-request-generated", callback);
+      }
+    },
+    []
+  );
+
+  // Handle request completion notifications
+  const onRequestsCompleted = useCallback(
+    (callback: (data: { count: number; timestamp: string }) => void) => {
+      if (socketRef.current) {
+        socketRef.current.on("requests-completed", callback);
+      }
+    },
+    []
+  );
 
   // Connect on mount
   useEffect(() => {
@@ -181,6 +194,7 @@ export const useWebSocket = () => {
     changeFrequency,
     generateRequest,
     onAutoRequestGenerated,
+    onRequestsCompleted,
     connect,
     disconnect,
   };

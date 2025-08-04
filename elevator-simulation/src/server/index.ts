@@ -118,6 +118,22 @@ io.on("connection", (socket) => {
             });
           }
 
+          // Check if any requests were completed
+          const completedRequestsBefore = stateBefore.completedRequests;
+          const completedRequestsAfter = stateAfter.completedRequests;
+
+          if (completedRequestsAfter > completedRequestsBefore) {
+            const newCompleted =
+              completedRequestsAfter - completedRequestsBefore;
+            console.log(`✅ ${newCompleted} request(s) completed`);
+
+            // Send completion notification to frontend
+            socket.emit("requests-completed", {
+              count: newCompleted,
+              timestamp: new Date().toLocaleTimeString(),
+            });
+          }
+
           socket.emit("simulation-state", {
             type: "simulation-state",
             state: stateAfter,
