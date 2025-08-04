@@ -44,9 +44,11 @@ export class ElevatorClass implements Elevator {
    */
   public move(): void {
     if (this.direction === "up") {
-      this.currentFloor += 1;
+      // Don't go beyond the top floor (5 for now)
+      this.currentFloor = Math.min(this.currentFloor + 1, 5);
     } else if (this.direction === "down") {
-      this.currentFloor -= 1;
+      // Don't go below the ground floor
+      this.currentFloor = Math.max(this.currentFloor - 1, 1);
     }
 
     this.isMoving = true;

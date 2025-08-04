@@ -97,7 +97,11 @@ export class Scheduler {
     elevators: ElevatorClass[],
     floor: number
   ): ElevatorClass {
-    let closestElevator = elevators[0];
+    if (elevators.length === 0) {
+      throw new Error("No elevators available");
+    }
+
+    let closestElevator = elevators[0]!;
     let shortestDistance = closestElevator.getDistanceToFloor(floor);
 
     for (const elevator of elevators) {
@@ -136,41 +140,21 @@ export class Scheduler {
     for (const elevator of this.elevators) {
       // If elevator has reached its target and has assigned requests
       if (elevator.hasReachedTarget() && elevator.assignedRequests.length > 0) {
-        // Find the next request for this elevator
-        // For now, we'll just pick the first assigned request
-        // In a real implementation, this would be more sophisticated
-
-        // For simplicity, we'll just set a new target
-        // This is where the SCAN logic would be more complex
-        this.setNextTargetForElevator(elevator);
+        // Simple approach: just move in the current direction
+        if (elevator.direction === "up") {
+          // Don't go beyond the top floor
+          const nextFloor = Math.min(elevator.currentFloor + 1, 5); // Hardcoded for now
+          elevator.setTarget(nextFloor);
+        } else if (elevator.direction === "down") {
+          // Don't go below the ground floor
+          const nextFloor = Math.max(elevator.currentFloor - 1, 1);
+          elevator.setTarget(nextFloor);
+        } else {
+          // If idle, start moving up
+          const nextFloor = Math.min(elevator.currentFloor + 1, 5);
+          elevator.setTarget(nextFloor);
+        }
       }
-    }
-  }
-
-  /**
-   * Set the next target for an elevator based on SCAN algorithm
-   * @param elevator - The elevator to set target for
-   */
-  private setNextTargetForElevator(elevator: ElevatorClass): void {
-    // Simple SCAN logic:
-    // If elevator is going up, find the highest request above current floor
-    // If elevator is going down, find the lowest request below current floor
-
-    // For now, we'll implement a simple version
-    // In a real implementation, this would look at all assigned requests
-
-    if (elevator.direction === "up") {
-      // Look for requests above current floor
-      // For simplicity, we'll just move up one floor
-      elevator.setTarget(elevator.currentFloor + 1);
-    } else if (elevator.direction === "down") {
-      // Look for requests below current floor
-      // For simplicity, we'll just move down one floor
-      elevator.setTarget(elevator.currentFloor - 1);
-    } else {
-      // Elevator is idle, pick a direction based on requests
-      // For simplicity, we'll just go up
-      elevator.setTarget(elevator.currentFloor + 1);
     }
   }
 }

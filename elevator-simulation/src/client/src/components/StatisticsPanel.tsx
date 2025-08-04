@@ -39,13 +39,11 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
 
   // Calculate completion rate
   const completionRate =
-    totalRequests > 0
-      ? ((completedRequests / totalRequests) * 100).toFixed(1)
-      : "0.0";
+    totalRequests > 0 ? (completedRequests / totalRequests) * 100 : 0;
 
   // Calculate requests per minute
   const requestsPerMinute =
-    currentTime > 0 ? ((totalRequests / currentTime) * 60).toFixed(1) : "0.0";
+    currentTime > 0 ? (totalRequests / currentTime) * 60 : 0;
 
   return (
     <div className="statistics-panel panel">
@@ -93,7 +91,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           <div className="stat-icon">📈</div>
           <div className="stat-content">
             <div className="stat-label">Completion Rate</div>
-            <div className="stat-value">{completionRate}%</div>
+            <div className="stat-value">{completionRate.toFixed(1)}%</div>
           </div>
         </div>
 
@@ -102,7 +100,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           <div className="stat-icon">🚀</div>
           <div className="stat-content">
             <div className="stat-label">Requests/Minute</div>
-            <div className="stat-value">{requestsPerMinute}</div>
+            <div className="stat-value">{requestsPerMinute.toFixed(1)}</div>
           </div>
         </div>
 

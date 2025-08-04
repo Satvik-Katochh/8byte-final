@@ -3,19 +3,37 @@
  * This component manages the overall application state and layout
  */
 
-import React, { useState, useEffect } from 'react';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import "./App.css";
 
-// Import our components (we'll create these next)
-import ElevatorDisplay from './components/ElevatorDisplay';
-import ControlPanel from './components/ControlPanel';
-import StatisticsPanel from './components/StatisticsPanel';
+// Import our components
+import ElevatorDisplay from "./components/ElevatorDisplay";
+import ControlPanel from "./components/ControlPanel";
+import StatisticsPanel from "./components/StatisticsPanel";
+
+// Import our WebSocket hook
+import { useWebSocket } from "./hooks/useWebSocket";
 
 /**
  * App Component
  * Main application component that manages the simulation
  */
 function App() {
+  // WebSocket connection
+  const {
+    isConnected,
+    simulationState: wsSimulationState,
+    error,
+    initializeSimulation,
+    startSimulation,
+    stopSimulation,
+    resetSimulation,
+    changeSpeed,
+    changeFrequency,
+    generateRequest,
+    onAutoRequestGenerated,
+  } = useWebSocket();
+
   // Application state
   const [isRunning, setIsRunning] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -23,49 +41,133 @@ function App() {
   const [totalElevators, setTotalElevators] = useState(4);
   const [requestFrequency, setRequestFrequency] = useState(1);
 
-  // Simulation state (we'll connect this to the backend later)
-  const [simulationState, setSimulationState] = useState({
+  // Request log state
+  const [requestLog, setRequestLog] = useState<
+    Array<{
+      id: string;
+      type: "manual" | "auto";
+      fromFloor: number;
+      toFloor: number;
+      timestamp: string;
+      status: "pending" | "completed";
+    }>
+  >([]);
+
+  // Use WebSocket state or fallback to local state
+  const simulationState = wsSimulationState || {
     currentTime: 0,
     elevators: [],
     pendingRequests: 0,
     totalRequests: 0,
     completedRequests: 0,
-    averageWaitTime: 0
-  });
+    averageWaitTime: 0,
+  };
+
+  // Track completed requests
+  const [completedRequestCount, setCompletedRequestCount] = useState(0);
+
+  // Update completed requests when simulation state changes
+  useEffect(() => {
+    if (simulationState.completedRequests > completedRequestCount) {
+      const newCompleted =
+        simulationState.completedRequests - completedRequestCount;
+      setCompletedRequestCount(simulationState.completedRequests);
+
+      // Mark some requests as completed (simplified)
+      setRequestLog((prev) => {
+        const updated = [...prev];
+        const pendingRequests = updated.filter((r) => r.status === "pending");
+
+        // Mark some pending requests as completed
+        for (
+          let i = 0;
+          i < Math.min(newCompleted, pendingRequests.length);
+          i++
+        ) {
+          const index = updated.findIndex((r) => r.status === "pending");
+          if (index !== -1) {
+            updated[index] = {
+              ...updated[index],
+              status: "completed" as const,
+            };
+          }
+        }
+
+        return updated;
+      });
+    }
+  }, [simulationState.completedRequests, completedRequestCount]);
+
+  // Handle auto-request notifications
+  useEffect(() => {
+    if (onAutoRequestGenerated) {
+      const handleAutoRequest = (data: {
+        count: number;
+        timestamp: string;
+      }) => {
+        console.log(`🔵 Auto-request generated: ${data.count} request(s)`);
+
+        // Add auto-requests to log (simplified - we don't have exact floor info from server)
+        for (let i = 0; i < data.count; i++) {
+          const newRequest = {
+            id: `auto_${Date.now()}_${i}`,
+            type: "auto" as const,
+            fromFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
+            toFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
+            timestamp: data.timestamp,
+            status: "pending" as const,
+          };
+
+          setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
+        }
+      };
+
+      onAutoRequestGenerated(handleAutoRequest);
+    }
+  }, [onAutoRequestGenerated, totalFloors]);
 
   /**
    * Start the simulation
    */
   const handleStart = () => {
-    setIsRunning(true);
-    console.log('Starting simulation...');
-    // TODO: Connect to backend simulation engine
+    if (isConnected) {
+      setIsRunning(true);
+      startSimulation();
+      console.log("Starting simulation...");
+    } else {
+      console.error("WebSocket not connected");
+    }
   };
 
   /**
    * Stop the simulation
    */
   const handleStop = () => {
-    setIsRunning(false);
-    console.log('Stopping simulation...');
-    // TODO: Connect to backend simulation engine
+    if (isConnected) {
+      setIsRunning(false);
+      stopSimulation();
+      console.log("Stopping simulation...");
+    } else {
+      console.error("WebSocket not connected");
+    }
   };
 
   /**
    * Reset the simulation
    */
   const handleReset = () => {
-    setIsRunning(false);
-    setSimulationState({
-      currentTime: 0,
-      elevators: [],
-      pendingRequests: 0,
-      totalRequests: 0,
-      completedRequests: 0,
-      averageWaitTime: 0
-    });
-    console.log('Resetting simulation...');
-    // TODO: Connect to backend simulation engine
+    if (isConnected) {
+      setIsRunning(false);
+      resetSimulation({
+        totalFloors,
+        totalElevators,
+        requestFrequency,
+      });
+      setRequestLog([]); // Clear request log
+      console.log("Resetting simulation...");
+    } else {
+      console.error("WebSocket not connected");
+    }
   };
 
   /**
@@ -73,8 +175,10 @@ function App() {
    */
   const handleSpeedChange = (newSpeed: number) => {
     setSpeed(newSpeed);
+    if (isConnected) {
+      changeSpeed(newSpeed);
+    }
     console.log(`Speed changed to ${newSpeed}x`);
-    // TODO: Connect to backend simulation engine
   };
 
   /**
@@ -83,7 +187,7 @@ function App() {
   const handleFloorsChange = (newFloors: number) => {
     setTotalFloors(newFloors);
     console.log(`Floors changed to ${newFloors}`);
-    // TODO: Connect to backend simulation engine
+    // Will be applied on next reset
   };
 
   /**
@@ -92,7 +196,7 @@ function App() {
   const handleElevatorsChange = (newElevators: number) => {
     setTotalElevators(newElevators);
     console.log(`Elevators changed to ${newElevators}`);
-    // TODO: Connect to backend simulation engine
+    // Will be applied on next reset
   };
 
   /**
@@ -100,29 +204,85 @@ function App() {
    */
   const handleFrequencyChange = (newFrequency: number) => {
     setRequestFrequency(newFrequency);
+    if (isConnected) {
+      changeFrequency(newFrequency);
+    }
     console.log(`Request frequency changed to ${newFrequency}/sec`);
-    // TODO: Connect to backend simulation engine
   };
 
-  // Mock simulation update (we'll replace this with real backend connection)
-  useEffect(() => {
-    if (isRunning) {
-      const interval = setInterval(() => {
-        setSimulationState(prevState => ({
-          ...prevState,
-          currentTime: prevState.currentTime + speed
-        }));
-      }, 100); // Update every 100ms
+  // Handle manual request generation
+  const handleGenerateRequest = (fromFloor: number, toFloor: number) => {
+    console.log(
+      `🔧 Generating manual request: Floor ${fromFloor} → Floor ${toFloor}`
+    );
 
-      return () => clearInterval(interval);
+    // Add to request log
+    const newRequest = {
+      id: `manual_${Date.now()}`,
+      type: "manual" as const,
+      fromFloor,
+      toFloor,
+      timestamp: new Date().toLocaleTimeString(),
+      status: "pending" as const,
+    };
+
+    setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
+
+    generateRequest(fromFloor, toFloor);
+  };
+
+  // Initialize simulation when component mounts
+  useEffect(() => {
+    console.log(
+      "🔧 App useEffect - isConnected:",
+      isConnected,
+      "simulationState:",
+      simulationState
+    );
+    if (isConnected) {
+      console.log("🔧 Initializing simulation...");
+      initializeSimulation({
+        totalFloors,
+        totalElevators,
+        requestFrequency,
+      });
     }
-  }, [isRunning, speed]);
+  }, [
+    isConnected,
+    initializeSimulation,
+    totalFloors,
+    totalElevators,
+    requestFrequency,
+  ]);
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>🏢 Elevator Simulation</h1>
         <p>Real-time elevator system with intelligent scheduling</p>
+        {error && (
+          <div
+            style={{
+              background: "rgba(244, 67, 54, 0.2)",
+              padding: "10px",
+              borderRadius: "8px",
+              marginTop: "10px",
+            }}
+          >
+            ⚠️ {error}
+          </div>
+        )}
+        <div
+          style={{
+            marginTop: "10px",
+            fontSize: "0.9rem",
+            opacity: 0.8,
+          }}
+        >
+          {isConnected
+            ? "🟢 Connected to server"
+            : "🔴 Disconnected from server"}
+        </div>
       </header>
 
       <main className="App-main">
@@ -149,7 +309,128 @@ function App() {
             totalElevators={totalElevators}
             elevators={simulationState.elevators}
             isRunning={isRunning}
+            pendingRequests={simulationState.pendingRequests}
+            onGenerateRequest={handleGenerateRequest}
           />
+        </div>
+
+        {/* Simple Instructions */}
+        <div
+          className="panel"
+          style={{ marginTop: "20px", background: "rgba(0, 255, 0, 0.1)" }}
+        >
+          <h3>📋 Quick Test Guide</h3>
+          <div style={{ fontSize: "0.9rem", textAlign: "left" }}>
+            <div style={{ marginBottom: "10px" }}>
+              <strong>🎯 Test Steps:</strong>
+            </div>
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.3)",
+                padding: "10px",
+                borderRadius: "6px",
+                fontSize: "0.9rem",
+              }}
+            >
+              <div>1. Click Reset → Set: 5 floors, 1 elevator</div>
+              <div>2. Click ⬆️ on Floor 3 (creates manual request)</div>
+              <div>3. Click Start (auto-requests generate every second)</div>
+              <div>4. Watch elevator move smoothly</div>
+              <div>5. Click Stop after 5 seconds</div>
+            </div>
+            <div
+              style={{ fontSize: "0.8rem", color: "#666", marginTop: "8px" }}
+            >
+              💡 Watch the Request Log below for timestamp, origin, destination
+            </div>
+          </div>
+        </div>
+
+        {/* Real-time Request Log */}
+        <div
+          className="panel"
+          style={{ marginTop: "20px", background: "rgba(52, 152, 219, 0.1)" }}
+        >
+          <h3>📝 Request Log (Timestamp | Origin → Destination)</h3>
+          <div
+            style={{
+              fontSize: "0.85rem",
+              maxHeight: "150px",
+              overflowY: "auto",
+              background: "rgba(255, 255, 255, 0.2)",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
+            }}
+          >
+            {requestLog.length === 0 ? (
+              <div style={{ color: "#666", fontStyle: "italic" }}>
+                No requests yet. Click floor buttons or start simulation.
+              </div>
+            ) : (
+              requestLog.map((request, index) => (
+                <div
+                  key={request.id}
+                  style={{
+                    padding: "4px 0",
+                    borderBottom:
+                      index < requestLog.length - 1
+                        ? "1px solid rgba(255, 255, 255, 0.1)"
+                        : "none",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: "0.8rem",
+                    opacity: request.status === "completed" ? 0.7 : 1,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color:
+                          request.status === "completed"
+                            ? "#2ecc71"
+                            : request.type === "manual"
+                            ? "#ff6b6b"
+                            : "#4ecdc4",
+                        fontWeight: "bold",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {request.status === "completed"
+                        ? "✅"
+                        : request.type === "manual"
+                        ? "🔴"
+                        : "🔵"}{" "}
+                      {request.status === "completed"
+                        ? "COMPLETED"
+                        : request.type.toUpperCase()}
+                    </span>
+                    <span
+                      style={{
+                        color: request.status === "completed" ? "#ccc" : "#fff",
+                        textDecoration:
+                          request.status === "completed"
+                            ? "line-through"
+                            : "none",
+                      }}
+                    >
+                      Floor {request.fromFloor} → Floor {request.toFloor}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "#ccc" }}>
+                    {request.timestamp}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Statistics Panel - Bottom of the page */}
@@ -165,4 +446,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

@@ -42,6 +42,16 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onElevatorsChange,
   onFrequencyChange,
 }) => {
+  // Handle peak traffic scenario
+  const handlePeakTraffic = () => {
+    onFloorsChange(30); // 30 floors
+    onElevatorsChange(6); // 6 elevators
+    onFrequencyChange(2); // 2 requests/second
+    console.log(
+      "🚀 Peak traffic scenario activated: 30 floors, 6 elevators, 2 req/sec"
+    );
+  };
+
   return (
     <div className="control-panel panel">
       <h3>🎮 Simulation Controls</h3>
@@ -61,22 +71,33 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
 
         <button onClick={onReset}>🔄 Reset</button>
+
+        <button
+          onClick={handlePeakTraffic}
+          disabled={isRunning}
+          style={{
+            background: "rgba(255, 193, 7, 0.3)",
+            borderColor: "rgba(255, 193, 7, 0.5)",
+          }}
+        >
+          🚀 Peak Traffic
+        </button>
       </div>
 
       {/* Simulation Parameters */}
       <div className="controls-grid">
         {/* Speed Control */}
         <div className="control-group">
-          <label>🚀 Speed</label>
+          <label>🚀 Speed (Simulation Rate)</label>
           <select
             value={speed}
             onChange={(e) => onSpeedChange(Number(e.target.value))}
             disabled={isRunning}
           >
-            <option value={1}>1x Normal</option>
-            <option value={2}>2x Fast</option>
-            <option value={5}>5x Very Fast</option>
-            <option value={10}>10x Ultra Fast</option>
+            <option value={1}>1x (100% Normal)</option>
+            <option value={2}>2x (200% Fast)</option>
+            <option value={5}>5x (500% Very Fast)</option>
+            <option value={10}>10x (1000% Ultra Fast)</option>
           </select>
         </div>
 
@@ -130,7 +151,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           {isRunning ? "🟢 Running" : "🔴 Stopped"}
         </div>
         <div className="status-info">
-          <span>Speed: {speed}x</span>
+          <span>
+            Speed: {speed}x ({speed * 100}%)
+          </span>
           <span>Floors: {totalFloors}</span>
           <span>Elevators: {totalElevators}</span>
           <span>Frequency: {requestFrequency}/sec</span>

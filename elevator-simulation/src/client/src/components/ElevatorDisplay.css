@@ -75,13 +75,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .elevator.moving {
   background: linear-gradient(135deg, #ff9800, #f57c00);
-  animation: pulse 1s infinite;
+  border: 2px solid #ff6b6b;
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+  transform: scale(1.02);
 }
 
 .elevator-info {
@@ -150,6 +153,16 @@
   background: rgba(244, 67, 54, 0.3);
 }
 
+.request-indicator {
+  margin-left: 10px;
+  padding: 4px 8px;
+  background: rgba(255, 193, 7, 0.3);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #ffc107;
+  font-weight: 600;
+}
+
 .ground-floor {
   display: flex;
   align-items: center;
@@ -158,6 +171,7 @@
   background: rgba(139, 69, 19, 0.3);
   border-radius: 8px;
   border: 1px solid rgba(139, 69, 19, 0.5);
+  min-height: 60px;
 }
 
 .ground-label {
@@ -170,23 +184,38 @@
 .ground-elevators {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .ground-elevator-shaft {
   width: 80px;
-  height: 40px;
+  height: 50px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(139, 69, 19, 0.5);
   border-radius: 4px;
   background: rgba(139, 69, 19, 0.2);
+  padding: 4px;
+  overflow: hidden;
 }
 
 .elevator-shaft-label {
   font-weight: 600;
   color: #8b4513;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.elevator-shaft-status {
+  font-size: 0.7rem;
+  color: #ffd700;
+  text-align: center;
+  line-height: 1.1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .legend {
@@ -212,35 +241,33 @@
   font-size: 1.1rem;
 }
 
-/* Animation for moving elevators */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.8; }
-  100% { opacity: 1; }
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
   .building {
     max-height: 300px;
   }
-  
+
   .elevator-shafts {
     gap: 4px;
   }
-  
+
   .elevator-shaft {
     width: 60px;
   }
-  
+
   .floor-number {
     width: 40px;
     font-size: 1rem;
   }
-  
+
   .legend {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .ground-elevator-shaft {
+    width: 70px;
+    height: 45px;
   }
 }
 
@@ -261,4 +288,4 @@
 
 .building::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
-} 
+}

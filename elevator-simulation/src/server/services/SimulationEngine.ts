@@ -111,10 +111,49 @@ export class SimulationEngine {
   }
 
   /**
-   * Generate a random request
+   * Check if it's morning rush hour (8-10 AM)
+   * @returns true if it's rush hour
+   */
+  private isMorningRushHour(): boolean {
+    const hour = new Date().getHours();
+    return hour >= 8 && hour <= 10;
+  }
+
+  /**
+   * Generate rush hour request with lobby bias
+   */
+  private generateRushHourRequest(): RequestClass {
+    // 70% chance of request from lobby (floor 1) to upper floors
+    const isFromLobby = Math.random() < 0.7;
+    const fromFloor = isFromLobby
+      ? 1
+      : Math.floor(Math.random() * this.totalFloors) + 1;
+
+    let toFloor: number;
+    if (isFromLobby) {
+      // If from lobby, go to upper floors (2 to totalFloors)
+      toFloor = Math.floor(Math.random() * (this.totalFloors - 1)) + 2;
+    } else {
+      // Random destination
+      toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+      while (toFloor === fromFloor) {
+        toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+      }
+    }
+
+    return new RequestClass(fromFloor, toFloor, this.currentTime);
+  }
+
+  /**
+   * Generate a random request with rush hour logic
    */
   private generateRandomRequest(): RequestClass {
-    // Generate random origin and destination floors
+    // Check if it's morning rush hour
+    if (this.isMorningRushHour()) {
+      return this.generateRushHourRequest();
+    }
+
+    // Normal random request generation
     const fromFloor = Math.floor(Math.random() * this.totalFloors) + 1;
     let toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
 
@@ -151,8 +190,8 @@ export class SimulationEngine {
     for (let i = this.pendingRequests.length - 1; i >= 0; i--) {
       const request = this.pendingRequests[i];
 
-      // Skip if already assigned
-      if (request.isAssigned) {
+      // Skip if request is undefined or already assigned
+      if (!request || request.isAssigned) {
         continue;
       }
 
@@ -205,27 +244,68 @@ export class SimulationEngine {
   }
 
   /**
-   * Process passengers getting on/off elevator (simplified)
+   * Process passengers getting on/off elevator and complete requests
    * @param elevator - The elevator to process
    */
   private processPassengers(elevator: ElevatorClass): void {
-    // For now, we'll just simulate passengers getting on/off
-    // In a real implementation, this would be more complex
+    // Simulate some passengers getting off (if elevator has passengers)
+    if (elevator.passengerCount > 0) {
+      const passengersGettingOff =
+        Math.floor(Math.random() * elevator.passengerCount) + 1;
+      if (elevator.removePassengers(passengersGettingOff)) {
+        console.log(
+          `${passengersGettingOff} passengers got off Elevator ${elevator.id}`
+        );
 
-    // Simulate some passengers getting on
-    const passengersGettingOn = Math.floor(Math.random() * 3) + 1; // 1-3 passengers
-    if (elevator.addPassengers(passengersGettingOn)) {
-      console.log(
-        `${passengersGettingOn} passengers got on Elevator ${elevator.id}`
-      );
+        // Complete requests that were served by this elevator
+        this.completeRequestsForElevator(elevator);
+      }
     }
 
-    // Simulate some passengers getting off
-    const passengersGettingOff = Math.floor(Math.random() * 2) + 1; // 1-2 passengers
-    if (elevator.removePassengers(passengersGettingOff)) {
-      console.log(
-        `${passengersGettingOff} passengers got off Elevator ${elevator.id}`
-      );
+    // Simulate some passengers getting on (if elevator has capacity)
+    if (elevator.hasCapacity()) {
+      const passengersGettingOn = Math.floor(Math.random() * 2) + 1; // 1-2 passengers
+      if (elevator.addPassengers(passengersGettingOn)) {
+        console.log(
+          `${passengersGettingOn} passengers got on Elevator ${elevator.id}`
+        );
+      }
+    }
+  }
+
+  /**
+   * Complete requests that were served by this elevator
+   * @param elevator - The elevator that served the requests
+   */
+  private completeRequestsForElevator(elevator: ElevatorClass): void {
+    // Find requests that were assigned to this elevator and are now completed
+    for (let i = this.pendingRequests.length - 1; i >= 0; i--) {
+      const request = this.pendingRequests[i];
+
+      if (
+        request &&
+        request.isAssigned &&
+        request.assignedElevatorId === elevator.id
+      ) {
+        // Check if this request was served (simplified logic)
+        const wasServed = Math.random() > 0.5; // 50% chance of completion
+
+        if (wasServed) {
+          // Mark request as completed
+          request.isAssigned = false;
+          delete request.assignedElevatorId;
+
+          // Remove from pending requests
+          this.pendingRequests.splice(i, 1);
+
+          // Increment completed requests
+          this.completedRequests++;
+
+          console.log(
+            `Request completed: Floor ${request.fromFloor} → Floor ${request.toFloor} by Elevator ${elevator.id}`
+          );
+        }
+      }
     }
   }
 
@@ -298,5 +378,17 @@ export class SimulationEngine {
   public setRequestFrequency(frequency: number): void {
     this.requestFrequency = frequency;
     console.log(`Request frequency set to ${frequency} requests/second`);
+  }
+
+  /**
+   * Add manual request from frontend
+   * @param fromFloor - Origin floor
+   * @param toFloor - Destination floor
+   */
+  public addManualRequest(fromFloor: number, toFloor: number): void {
+    const request = new RequestClass(fromFloor, toFloor, this.currentTime);
+    this.pendingRequests.push(request);
+    this.totalRequests++;
+    console.log(`Manual request added: Floor ${fromFloor} → Floor ${toFloor}`);
   }
 }
