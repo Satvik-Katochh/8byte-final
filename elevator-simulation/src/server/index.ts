@@ -58,6 +58,15 @@ let simulationInterval: NodeJS.Timeout | null = null;
 io.on("connection", (socket) => {
   console.log("🔌 Client connected:", socket.id);
 
+  // Remove any existing listeners to prevent duplicates
+  socket.removeAllListeners("initialize-simulation");
+  socket.removeAllListeners("start-simulation");
+  socket.removeAllListeners("stop-simulation");
+  socket.removeAllListeners("reset-simulation");
+  socket.removeAllListeners("change-speed");
+  socket.removeAllListeners("change-frequency");
+  socket.removeAllListeners("generate-request");
+
   // Initialize simulation when client connects
   socket.on(
     "initialize-simulation",
@@ -202,7 +211,6 @@ io.on("connection", (socket) => {
   socket.on(
     "generate-request",
     (data: { fromFloor: number; toFloor: number }) => {
-      console.log("📋 Manual request:", data);
       if (simulationEngine) {
         // We'll add this method to SimulationEngine
         simulationEngine.addManualRequest(data.fromFloor, data.toFloor);

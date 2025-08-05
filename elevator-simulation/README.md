@@ -205,290 +205,142 @@ This means at 5x speed, 5 seconds of simulation time pass in 1 real second.
 
 ## 📅 **DEVELOPMENT TIMELINE**
 
-### **Day 1 (Aug 1): TypeScript Basics & Core Interfaces ✅**
+### **Day 1-2:** Project Setup & Basic Architecture ✅
 
-**Time:** 5-6 hours
+- ✅ Express + Socket.IO server setup
+- ✅ React + TypeScript frontend setup
+- ✅ Basic elevator visualization
+- ✅ WebSocket connection between frontend and backend
 
-- ✅ Project setup and configuration
-- ✅ Simple Request interface
-- ✅ Simple Elevator interface
-- **Next:** Building interface, basic Request class
-- **Learning:** TypeScript interfaces, types, basic concepts
+### **Day 3:** Core Simulation Engine ✅
 
-### **Day 2 (Aug 2): Core Logic & Scheduling ✅**
+- ✅ SimulationEngine class with time-based processing
+- ✅ Elevator movement logic (up/down/idle)
+- ✅ Basic SCAN algorithm for request assignment
+- ✅ Request generation (manual + auto)
 
-**Time:** 5-6 hours
+### **Day 4:** Real-time UI & Controls ✅
 
-- Basic Elevator class with movement logic
-- Simple SCAN scheduling algorithm
-- Request assignment logic
-- **Learning:** Classes, methods, basic algorithms
+- ✅ Live elevator position updates
+- ✅ Interactive floor buttons (⬆️/⬇️)
+- ✅ Start/stop/reset controls
+- ✅ Speed controls (1x, 2x, 5x, 10x)
+- ✅ Statistics panel with real-time metrics
 
-### **Day 3 (Aug 3): Simulation Engine ✅**
+### **Day 5:** Request Management & Logging ✅
 
-**Time:** 5-6 hours
+- ✅ Manual request generation from UI
+- ✅ Auto-request generation every second
+- ✅ Request log with timestamps
+- ✅ Request completion tracking
+- ✅ Manual vs Auto request distinction
 
-- Main simulation loop with real-time updates
-- Random request generation
-- WebSocket communication setup
-- **Learning:** Loops, timers, state management
+### **Day 6:** UI Polish & Request Tracking ✅
 
-### **Day 4 (Aug 4): Frontend Foundation ✅**
+- ✅ Removed distracting blinking animations
+- ✅ Clean elevator movement with smooth transitions
+- ✅ Professional UI design with glass-morphism
+- ✅ Fixed text overflow issues
+- ✅ Added "Peak Traffic" scenario button
+- ✅ Improved request log display with timestamps
 
-**Time:** 5-6 hours
+### **Day 7:** WebSocket Communication & Flow Understanding ✅
 
-- React application setup
-- Basic elevator visualization
-- Real-time display of elevator states
-- **Learning:** React basics, components, props
+- ✅ Fixed duplicate WebSocket event listeners
+- ✅ Fixed duplicate request generation issues
+- ✅ Added proper manual request tracking with `isManual` flag
+- ✅ Comprehensive WebSocket communication flow
+- ✅ Complete simulation flow understanding
+- ✅ Step-by-step debugging and problem resolution
+- ✅ Real-time request completion tracking
+- ✅ Unique request ID generation for auto-requests
 
-### **Day 5 (Aug 5): Interactive Features ✅**
+### **Day 8:** Advanced Features & Optimization (NEXT)
 
-**Time:** 5-6 hours
+- 🎯 Priority escalation (30-second rule)
+- 🎯 Rush hour detection and optimization
+- 🎯 Predictive elevator positioning
+- 🎯 Advanced scheduling algorithms
+- 🎯 Performance optimization
+- 🎯 Stress testing with 100+ requests
 
-- Start/stop/reset simulation controls
-- Speed controls (1x, 2x, 5x, 10x)
-- Parameter adjustment (elevators, floors, request frequency)
-- **Learning:** React state, event handling
+## 🎯 **DAY 7 ACCOMPLISHMENTS - COMPREHENSIVE LEARNING**
 
-### **Day 6 (Aug 6): UI Polish & Request Tracking ✅**
+### **✅ WHAT WE FIXED TODAY:**
 
-**Time:** 5-6 hours
+#### **1. WebSocket Duplicate Event Listeners**
 
-**What We Accomplished Today:**
+- **Problem:** Multiple event listeners were being registered, causing duplicate requests
+- **Solution:** Added `socket.off()` before `socket.on()` to remove old listeners
+- **Result:** One click = One request (no more duplicates)
 
-#### **✅ UI Improvements:**
+#### **2. Manual Request Tracking**
 
-- **Removed UI Clutter:** Simplified instructions, reduced scrolling
-- **Fixed Elevator Status Overflow:** Text no longer breaks layout
-- **Clean Elevator Movement:** Removed blinking, smooth transitions
-- **Professional Layout:** Better spacing and organization
+- **Problem:** System couldn't distinguish between manual and auto requests
+- **Solution:** Added `isManual` property to RequestClass
+- **Result:** Clear distinction between user clicks and system-generated requests
 
-#### **✅ Request Tracking System:**
+#### **3. Request Completion Tracking**
 
-- **Timestamp Display:** Every request shows exact time
-- **Origin/Destination:** Shows "Floor X → Floor Y" clearly
-- **Request Status:** Shows MANUAL, AUTO, and COMPLETED requests
-- **Visual Indicators:**
-  - 🔴 MANUAL (user clicks)
-  - 🔵 AUTO (system generates)
-  - ✅ COMPLETED (successfully served)
+- **Problem:** No visibility into when requests were completed
+- **Solution:** Added completion notifications and UI updates
+- **Result:** Users can see when their requests are successfully served
 
-#### **✅ Assignment Requirements Met:**
+#### **4. Unique Request IDs**
 
-- **Peak Traffic Button:** Simulates rush hour (30 floors, 6 elevators, 2 req/sec)
-- **Simulation Rate Display:** Shows 100%, 200%, 500%, 1000%
-- **Real-time Request Log:** Shows timestamp, origin, destination for all requests
-- **Request Completion Tracking:** Shows when requests are successfully completed
+- **Problem:** Auto-requests had duplicate keys causing React warnings
+- **Solution:** Used `useRef` for unique counter instead of `useState`
+- **Result:** Each request has a unique identifier
 
-#### **✅ Backend Improvements:**
+### **✅ WHAT WE LEARNED TODAY:**
 
-- **Request Completion Logic:** Tracks when elevators serve requests
-- **Better Logging:** Shows which elevator completed which request
-- **Statistics Tracking:** Real-time performance metrics
-
-#### **✅ Frontend Enhancements:**
-
-- **Request Log Display:** Shows all requests with status
-- **Completed Request Styling:** Strikethrough and green checkmark
-- **Real-time Updates:** Live status changes
-- **Better Error Handling:** Improved WebSocket connection
-
-### **🎯 TECHNICAL CONCEPTS EXPLAINED:**
-
-#### **🔌 WebSocket vs REST API - Why WebSocket?**
-
-**REST API (Traditional):**
-
-- Client asks server: "Give me elevator status"
-- Server responds: "Elevator is on floor 3"
-- Client asks again: "Give me elevator status"
-- Server responds: "Elevator is on floor 4"
-- **Problem:** Client must keep asking every second
-
-**WebSocket (Real-time):**
-
-- Client connects to server once
-- Server automatically sends updates: "Elevator moved to floor 4"
-- Server automatically sends updates: "New request created"
-- **Benefit:** Real-time updates without constant asking
-
-**Why WebSocket for Elevator Simulation?**
-
-- Elevators move continuously
-- Requests are generated every second
-- UI needs to update in real-time
-- REST API would be too slow and inefficient
-
-#### **🔄 Simulation Flow - How It Works:**
-
-**Step 1: Request Generation**
-
-```typescript
-// Manual Request (User clicks button)
-User clicks ⬆️ on Floor 3
-→ Creates: Floor 3 → Floor 4
-→ Shows: 🔴 MANUAL Floor 3 → Floor 4 [timestamp]
-
-// Auto Request (System generates)
-Every 1 second, system creates random request
-→ Creates: Floor 1 → Floor 5 (random)
-→ Shows: 🔵 AUTO Floor 1 → Floor 5 [timestamp]
-```
-
-**Step 2: Request Assignment**
-
-```typescript
-// Scheduler finds best elevator
-Request: Floor 3 → Floor 4
-Available elevators: [Elevator 1, Elevator 2]
-→ Assigns to: Elevator 1 (closest)
-→ Sets elevator target: Floor 3
-```
-
-**Step 3: Elevator Movement**
-
-```typescript
-// Elevator moves floor by floor
-Elevator 1: Floor 1 → Floor 2 → Floor 3
-→ Picks up passengers at Floor 3
-→ Moves to: Floor 4
-→ Drops off passengers
-```
-
-**Step 4: Request Completion**
-
-```typescript
-// Request is completed
-Request: Floor 3 → Floor 4
-→ Changes to: ✅ COMPLETED Floor 3 → Floor 4 [timestamp]
-→ Removed from pending requests
-→ Statistics updated
-```
-
-#### **🎯 Key Files We Modified Today:**
-
-**1. `src/server/services/SimulationEngine.ts`**
-
-- Added `completeRequestsForElevator()` method
-- Tracks when requests are successfully served
-- Updates statistics in real-time
-
-**2. `src/client/src/App.tsx`**
-
-- Added request completion tracking
-- Shows completed requests with green checkmark
-- Real-time status updates
-
-**3. `src/client/src/components/ControlPanel.tsx`**
-
-- Added "Peak Traffic" button
-- Shows simulation rate as percentage
-- Better user controls
-
-**4. `src/client/src/components/ElevatorDisplay.css`**
-
-- Fixed text overflow issues
-- Clean elevator movement animations
-- Professional layout
-
-### **🎯 What You Can Now See:**
-
-#### **Request Log Example:**
+#### **WebSocket Communication Flow:**
 
 ```
-🔴 MANUAL Floor 3 → Floor 4 [10:30:15 AM]
-🔵 AUTO Floor 1 → Floor 5 [10:30:16 AM]
-✅ COMPLETED (MANUAL) Floor 3 → Floor 4 [10:30:15 AM]  ← Shows completion!
-🔵 AUTO Floor 2 → Floor 4 [10:30:17 AM]
-✅ COMPLETED (AUTO) Floor 1 → Floor 5 [10:30:16 AM]  ← Shows completion!
+Frontend → WebSocket → Backend → SimulationEngine → Backend → WebSocket → Frontend
 ```
 
-**Note:** The UI now properly shows when your manual requests are completed. The system prioritizes completing manual requests first, then auto requests.
+#### **Complete Request Flow:**
 
-#### **Test Scenario:**
+```
+1. User clicks Floor 3 ⬆️
+2. Frontend creates request: Floor 3 → Floor 4
+3. WebSocket sends to backend
+4. Backend adds to pending requests
+5. Simulation loop processes request
+6. Elevator moves: Floor 1 → Floor 2 → Floor 3 → Floor 4
+7. Request completed, notification sent to frontend
+8. UI updates to show completion
+```
 
-1. **Click Reset** → Set: 5 floors, 1 elevator
-2. **Click ⬆️ on Floor 3** → See: 🔴 MANUAL Floor 3 → Floor 4
-3. **Click Start** → See: 🔵 AUTO requests appearing
-4. **Watch elevator move** → Floor 1 → Floor 2 → Floor 3 → Floor 4
-5. **See completion** → Request changes to ✅ COMPLETED with strikethrough
+#### **Key Technical Concepts:**
 
-### **📚 LEARNING PROMPT FOR TOMORROW:**
+- **WebSocket vs REST API:** Real-time vs request-response
+- **Event-driven Architecture:** Frontend and backend communicate via events
+- **State Management:** React state updates trigger UI re-renders
+- **Simulation Loop:** Time-based processing every second
+- **Request Assignment:** SCAN algorithm assigns requests to elevators
 
-**Subject:** Day 7 - Advanced Algorithm Features
+### **✅ CURRENT SYSTEM STATUS:**
 
-**Context:**
+#### **Working Features:**
 
-- User is learning TypeScript and React step by step
-- Today we fixed UI issues and added request completion tracking
-- Tomorrow we need to implement advanced elevator scheduling algorithms
-- User needs to understand each concept before moving to the next
+- ✅ Real-time elevator movement
+- ✅ Manual request generation (user clicks)
+- ✅ Auto-request generation (system creates)
+- ✅ Request completion tracking
+- ✅ Statistics and metrics
+- ✅ Speed controls (1x, 2x, 5x, 10x)
+- ✅ Peak traffic simulation
+- ✅ Professional UI with smooth animations
 
-**Instructions for Tomorrow's Session:**
+#### **Ready for Day 8:**
 
-1. **Start with ONE concept at a time**
-2. **Explain WebSocket communication in detail**
-3. **Show how the simulation loop works step by step**
-4. **Explain why we use WebSocket instead of REST API**
-5. **Break down the request flow: Generation → Assignment → Movement → Completion**
-6. **Show the code and explain what each line does**
-7. **Let user ask questions and understand before proceeding**
-8. **Maximum 20-30 lines of code per explanation**
-9. **Use real-world analogies to explain technical concepts**
-10. **Focus on learning, not just completing the assignment**
-
-**Key Questions to Address:**
-
-- How does WebSocket work compared to REST API?
-- How does the simulation generate auto-requests?
-- How does the scheduler assign requests to elevators?
-- How do we track request completion?
-- Why do we need real-time updates?
-
-**Tomorrow's Goals:**
-
-- Implement priority escalation (30-second rule)
-- Add rush hour detection
-- Improve request assignment algorithm
-- Explain each concept thoroughly before implementation
-
-### **Day 7 (Aug 7): Advanced Algorithm Features**
-
-**Time:** 5-6 hours
-
-**Next Steps:**
-
-- Priority escalation system (30-second rule)
-- Rush hour detection and optimization
-- Morning rush hour bias implementation
-- **Learning:** Advanced algorithms, time-based logic
-
-### **Day 8 (Aug 8): Performance & Testing**
-
-**Time:** 5-6 hours
-
-- Performance metrics calculation
-- Stress testing with 100+ simultaneous requests
-- Statistics dashboard and real-time metrics
-- **Learning:** Performance optimization, testing strategies
-
-### **Day 9 (Aug 9): Polish & Documentation**
-
-**Time:** 5-6 hours
-
-- Algorithm report writing (1-2 pages)
-- Code documentation and comments
-- Final testing and bug fixes
-- **Learning:** Documentation, deployment preparation
-
-### **Day 10 (Aug 10): Submission Day**
-
-**Time:** 2-3 hours
-
-- Final review and testing
-- Submission preparation
-- Demo verification
+- 🎯 Priority escalation system
+- 🎯 Rush hour optimization
+- 🎯 Advanced scheduling algorithms
+- 🎯 Performance improvements
+- 🎯 Stress testing capabilities
 
 ## 🧠 **ALGORITHM DESIGN STRATEGY**
 

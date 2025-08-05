@@ -3,7 +3,7 @@
  * This component manages the overall application state and layout
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 // Import our components
@@ -54,6 +54,9 @@ function App() {
     }>
   >([]);
 
+  // Counter for unique auto-request IDs
+  const autoRequestCounterRef = useRef(0);
+
   // Use WebSocket state or fallback to local state
   const simulationState = wsSimulationState || {
     currentTime: 0,
@@ -76,7 +79,7 @@ function App() {
         // Add auto-requests to log (simplified - we don't have exact floor info from server)
         for (let i = 0; i < data.count; i++) {
           const newRequest = {
-            id: `auto_${Date.now()}_${i}`,
+            id: `auto_${Date.now()}_${autoRequestCounterRef.current + i}`,
             type: "auto" as const,
             fromFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
             toFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
@@ -86,6 +89,9 @@ function App() {
 
           setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
         }
+
+        // Update the counter for next time
+        autoRequestCounterRef.current += data.count;
       };
 
       onAutoRequestGenerated(handleAutoRequest);
@@ -190,6 +196,7 @@ function App() {
         requestFrequency,
       });
       setRequestLog([]); // Clear request log
+      autoRequestCounterRef.current = 0; // Reset ref counter
       console.log("Resetting simulation...");
     } else {
       console.error("WebSocket not connected");
@@ -238,13 +245,16 @@ function App() {
 
   // Handle manual request generation
   const handleGenerateRequest = (fromFloor: number, toFloor: number) => {
+    const requestId = `manual_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     console.log(
-      `🔧 Generating manual request: Floor ${fromFloor} → Floor ${toFloor}`
+      `🔧 Generating manual request: Floor ${fromFloor} → Floor ${toFloor} (ID: ${requestId})`
     );
 
     // Add to request log
     const newRequest = {
-      id: `manual_${Date.now()}`,
+      id: requestId,
       type: "manual" as const,
       fromFloor,
       toFloor,

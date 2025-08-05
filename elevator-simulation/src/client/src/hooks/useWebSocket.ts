@@ -46,8 +46,14 @@ export const useWebSocket = () => {
     useState<SimulationState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Connect to Socket.IO server
+  // Connect to Socket.IO
   const connect = useCallback(() => {
+    // Don't create multiple connections
+    if (socketRef.current) {
+      console.log("🔌 Socket connection already exists");
+      return;
+    }
+
     try {
       // Create Socket.IO connection to backend
       const socket = io("http://localhost:8080");
@@ -95,6 +101,7 @@ export const useWebSocket = () => {
   // Send message to server
   const sendMessage = useCallback((type: string, data?: any) => {
     if (socketRef.current && socketRef.current.connected) {
+      console.log(`🔌 WebSocket: Emitting ${type}`, data);
       socketRef.current.emit(type, data);
     } else {
       console.error("Socket.IO not connected");
@@ -147,6 +154,9 @@ export const useWebSocket = () => {
   // Generate manual request
   const generateRequest = useCallback(
     (fromFloor: number, toFloor: number) => {
+      console.log(
+        `🔌 WebSocket: Sending generate-request: Floor ${fromFloor} → Floor ${toFloor}`
+      );
       sendMessage("generate-request", { fromFloor, toFloor });
     },
     [sendMessage]
@@ -156,6 +166,9 @@ export const useWebSocket = () => {
   const onAutoRequestGenerated = useCallback(
     (callback: (data: { count: number; timestamp: string }) => void) => {
       if (socketRef.current) {
+        // Remove old listener first
+        socketRef.current.off("auto-request-generated");
+        // Add new listener
         socketRef.current.on("auto-request-generated", callback);
       }
     },
@@ -166,6 +179,9 @@ export const useWebSocket = () => {
   const onRequestsCompleted = useCallback(
     (callback: (data: { count: number; timestamp: string }) => void) => {
       if (socketRef.current) {
+        // Remove old listener first
+        socketRef.current.off("requests-completed");
+        // Add new listener
         socketRef.current.on("requests-completed", callback);
       }
     },
@@ -180,7 +196,7 @@ export const useWebSocket = () => {
     return () => {
       disconnect();
     };
-  }, [connect, disconnect]);
+  }, []); // Empty dependency array - only run once on mount
 
   return {
     isConnected,

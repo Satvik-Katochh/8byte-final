@@ -394,7 +394,7 @@ export class SimulationEngine {
     this.pendingRequests.push(request);
     this.totalRequests++;
     console.log(
-      `📋 Manual request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} }`
+      `📋 Manual request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} } [${new Date().toLocaleTimeString()}]`
     );
   }
 }
