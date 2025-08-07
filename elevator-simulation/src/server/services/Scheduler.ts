@@ -24,7 +24,7 @@ export class Scheduler {
   }
 
   /**
-   * Find the best elevator for a request using SCAN algorithm
+   * Find the best elevator for a request using SCAN algorithm with priority consideration
    * @param request - The request to assign
    * @returns The best elevator or null if none available
    */
@@ -43,8 +43,17 @@ export class Scheduler {
     const suitableElevators = this.findSuitableElevators(request);
 
     if (suitableElevators.length > 0) {
-      // Pick the closest suitable elevator
-      return this.findClosestElevator(suitableElevators, request.fromFloor);
+      // For high-priority requests, consider all suitable elevators
+      // For normal requests, pick the closest one
+      const requestPriority = request.getPriority(Date.now());
+      
+      if (requestPriority > 10) {
+        // High priority request - consider all suitable elevators
+        return this.findBestElevatorForHighPriority(suitableElevators, request);
+      } else {
+        // Normal priority request - pick the closest one
+        return this.findClosestElevator(suitableElevators, request.fromFloor);
+      }
     }
 
     // Step 3: If no suitable elevators, pick any available one
@@ -58,6 +67,58 @@ export class Scheduler {
 
     // No elevators available
     return null;
+  }
+
+  /**
+   * Find the best elevator for a high-priority request
+   * Considers both distance and elevator load
+   * @param elevators - Array of suitable elevators
+   * @param request - The high-priority request
+   * @returns The best elevator for high-priority request
+   */
+  private findBestElevatorForHighPriority(
+    elevators: ElevatorClass[],
+    request: RequestClass
+  ): ElevatorClass {
+    if (elevators.length === 0) {
+      throw new Error("No elevators available for high-priority request");
+    }
+
+    let bestElevator = elevators[0]!;
+    let bestScore = this.calculateElevatorScore(bestElevator, request);
+
+    for (const elevator of elevators) {
+      const score = this.calculateElevatorScore(elevator, request);
+      if (score > bestScore) {
+        bestScore = score;
+        bestElevator = elevator;
+      }
+    }
+
+    return bestElevator;
+  }
+
+  /**
+   * Calculate a score for an elevator based on distance and load
+   * Higher score = better choice for high-priority requests
+   * @param elevator - The elevator to score
+   * @param request - The request to consider
+   * @returns Score (higher is better)
+   */
+  private calculateElevatorScore(
+    elevator: ElevatorClass,
+    request: RequestClass
+  ): number {
+    // Base score is inverse of distance (closer = higher score)
+    const distance = elevator.getDistanceToFloor(request.fromFloor);
+    const distanceScore = 1000 / (distance + 1); // Avoid division by zero
+
+    // Load factor - prefer less loaded elevators
+    const capacityUsed = elevator.passengerCount / elevator.maxCapacity;
+    const loadScore = (1 - capacityUsed) * 500; // Less load = higher score
+
+    // Total score
+    return distanceScore + loadScore;
   }
 
   /**

@@ -186,7 +186,10 @@ export class SimulationEngine {
    * Process pending requests
    */
   private processRequests(): void {
-    // Process each pending request
+    // Step 1: Sort requests by priority (highest priority first)
+    this.sortRequestsByPriority();
+
+    // Step 2: Process each pending request in priority order
     for (let i = this.pendingRequests.length - 1; i >= 0; i--) {
       const request = this.pendingRequests[i];
 
@@ -201,9 +204,24 @@ export class SimulationEngine {
       if (bestElevator !== null) {
         // Assign request to elevator
         this.scheduler.assignRequest(request, bestElevator);
-        console.log(`Request assigned to Elevator ${bestElevator.id}`);
+        console.log(`Request assigned to Elevator ${bestElevator.id} (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`);
       }
     }
+  }
+
+  /**
+   * Sort pending requests by priority (highest priority first)
+   * This ensures that requests waiting longer get served first
+   */
+  private sortRequestsByPriority(): void {
+    this.pendingRequests.sort((a, b) => {
+      // Get priority scores for both requests
+      const priorityA = a.getPriority(this.currentTime);
+      const priorityB = b.getPriority(this.currentTime);
+      
+      // Sort in descending order (highest priority first)
+      return priorityB - priorityA;
+    });
   }
 
   /**

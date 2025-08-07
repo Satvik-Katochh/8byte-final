@@ -51,11 +51,34 @@ function App() {
       toFloor: number;
       timestamp: string;
       status: "pending" | "completed";
+      priority?: number; // Priority score for pending requests
     }>
   >([]);
 
   // Counter for unique auto-request IDs
   const autoRequestCounterRef = useRef(0);
+
+  /**
+   * Calculate priority for a request based on wait time
+   * @param timestamp - When the request was created
+   * @returns Priority score (higher = more urgent)
+   */
+  const calculatePriority = (timestamp: string): number => {
+    const requestTime = new Date(timestamp).getTime();
+    const currentTime = Date.now();
+    const waitTime = (currentTime - requestTime) / 1000; // Convert to seconds
+
+    // Base priority is 1
+    let priority = 1;
+
+    // If waiting more than 30 seconds, increase priority
+    if (waitTime > 30) {
+      // Priority increases exponentially after 30 seconds
+      priority += Math.pow(waitTime - 30, 1.5);
+    }
+
+    return priority;
+  };
 
   // Use WebSocket state or fallback to local state
   const simulationState = wsSimulationState || {
@@ -459,6 +482,21 @@ function App() {
                     >
                       Floor {request.fromFloor} → Floor {request.toFloor}
                     </span>
+                    {request.status === "pending" && (
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          color:
+                            calculatePriority(request.timestamp) > 10
+                              ? "#ff6b6b"
+                              : "#4ecdc4",
+                          fontWeight: "bold",
+                          marginLeft: "8px",
+                        }}
+                      >
+                        ⚡ {calculatePriority(request.timestamp).toFixed(1)}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: "0.7rem", color: "#ccc" }}>
                     {request.timestamp}
