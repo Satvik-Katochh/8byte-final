@@ -212,6 +212,27 @@ export class SimulationEngine {
         continue;
       }
 
+      // If request already has an assigned elevator (manual assignment),
+      // directly assign it without finding the best elevator
+      if (request.assignedElevatorId !== undefined) {
+        const assignedElevator = this.elevators.find(
+          (e) => e.id === request.assignedElevatorId
+        );
+        if (assignedElevator) {
+          this.scheduler.assignRequest(request, assignedElevator);
+          console.log(
+            `🎛️ Manual request assigned to Elevator ${
+              assignedElevator.id
+            } (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`
+          );
+          continue;
+        } else {
+          console.log(
+            `⚠️ Assigned elevator ${request.assignedElevatorId} not found, will find best elevator`
+          );
+        }
+      }
+
       // Find best elevator for this request
       const bestElevator = this.scheduler.findBestElevator(request);
 
@@ -641,10 +662,22 @@ export class SimulationEngine {
    * @param fromFloor - Origin floor
    * @param toFloor - Destination floor
    */
-  public addManualElevatorRequest(elevatorId: number, fromFloor: number, toFloor: number): void {
+  public addManualElevatorRequest(
+    elevatorId: number,
+    fromFloor: number,
+    toFloor: number
+  ): void {
     const request = new RequestClass(fromFloor, toFloor, this.currentTime);
     request.isManual = true; // Mark as manual request
     request.assignedElevatorId = elevatorId; // Assign to specific elevator
+
+    // Find the assigned elevator and mark request as assigned
+    const assignedElevator = this.elevators.find((e) => e.id === elevatorId);
+    if (assignedElevator) {
+      request.isAssigned = true; // Mark as assigned immediately
+      this.scheduler.assignRequest(request, assignedElevator);
+    }
+
     this.pendingRequests.push(request);
     this.totalRequests++;
     console.log(

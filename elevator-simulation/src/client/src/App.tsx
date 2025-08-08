@@ -10,6 +10,7 @@ import "./App.css";
 import ElevatorDisplay from "./components/ElevatorDisplay";
 import ControlPanel from "./components/ControlPanel";
 import StatisticsPanel from "./components/StatisticsPanel";
+import RequestLog from "./components/RequestLog";
 
 // Import our WebSocket hook
 import { useWebSocket } from "./hooks/useWebSocket";
@@ -453,6 +454,9 @@ function App() {
           />
         </div>
 
+        {/* Request Log - Above Quick Test Guide */}
+        <RequestLog requestLog={requestLog} />
+
         {/* Simple Instructions */}
         <div
           className="panel"
@@ -480,7 +484,7 @@ function App() {
             <div
               style={{ fontSize: "0.8rem", color: "#666", marginTop: "8px" }}
             >
-              💡 Watch the Request Log below for timestamp, origin, destination
+              💡 Watch the Request Log above for timestamp, origin, destination
             </div>
           </div>
         </div>
@@ -495,7 +499,6 @@ function App() {
           maxWaitTime={simulationState.maxWaitTime}
           averageTravelTime={simulationState.averageTravelTime}
           elevatorUtilization={simulationState.elevatorUtilization}
-          requestLog={requestLog}
         />
       </main>
     </div>

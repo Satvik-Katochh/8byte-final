@@ -7,20 +7,6 @@ import React from "react";
 import "./StatisticsPanel.css";
 
 /**
- * Request log entry interface
- */
-interface RequestLogEntry {
-  id: string;
-  type: "manual" | "auto";
-  fromFloor: number;
-  toFloor: number;
-  timestamp: string;
-  status: "pending" | "completed";
-  priority?: number;
-  assignedElevatorId?: number;
-}
-
-/**
  * Props for StatisticsPanel component
  */
 interface StatisticsPanelProps {
@@ -32,7 +18,6 @@ interface StatisticsPanelProps {
   maxWaitTime: number;
   averageTravelTime: number;
   elevatorUtilization: number;
-  requestLog?: RequestLogEntry[];
 }
 
 /**
@@ -48,7 +33,6 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
   maxWaitTime,
   averageTravelTime,
   elevatorUtilization,
-  requestLog = [],
 }) => {
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -57,12 +41,6 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
       .toString()
       .padStart(2, "0")}`;
-  };
-
-  // Format timestamp for request log
-  const formatTimestamp = (timestamp: string): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString();
   };
 
   return (
@@ -150,59 +128,6 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
                 : "🟢 Low"}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Request Log Section */}
-      <div className="request-log-section">
-        <div className="section-title">📋 Request Log</div>
-        <div className="request-log-container">
-          {requestLog.length === 0 ? (
-            <div className="no-requests">
-              No requests yet. Start the simulation to see activity.
-            </div>
-          ) : (
-            <div className="request-log-list">
-              {requestLog
-                .slice(-10)
-                .reverse()
-                .map((request) => (
-                  <div
-                    key={request.id}
-                    className={`request-log-item ${request.status}`}
-                  >
-                    <div className="request-info">
-                      <div className="request-type">
-                        {request.type === "manual" ? "🎛️ Manual" : "🤖 Auto"}
-                      </div>
-                      <div className="request-route">
-                        Floor {request.fromFloor} → Floor {request.toFloor}
-                      </div>
-                      <div className="request-time">
-                        {formatTimestamp(request.timestamp)}
-                      </div>
-                    </div>
-                    <div className="request-status">
-                      <div className={`status-badge ${request.status}`}>
-                        {request.status === "completed"
-                          ? "✅ Completed"
-                          : "⏳ Pending"}
-                      </div>
-                      {request.assignedElevatorId && (
-                        <div className="elevator-assignment">
-                          🛗 Elevator {request.assignedElevatorId}
-                        </div>
-                      )}
-                      {request.priority && request.status === "pending" && (
-                        <div className="priority-indicator">
-                          Priority: {request.priority.toFixed(1)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
         </div>
       </div>
 

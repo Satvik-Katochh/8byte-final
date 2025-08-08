@@ -1,0 +1,219 @@
+/**
+ * RequestLog.css - Elaborate request log styling
+ */
+
+.request-log-panel {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 8px 0;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.request-log-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffd700;
+  text-align: center;
+}
+
+.request-log-container {
+  height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+/* Optimized scrollbar for request log */
+.request-log-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.request-log-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.request-log-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.request-log-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.no-requests {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  padding: 20px;
+}
+
+.request-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.request-log-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  min-height: 32px;
+}
+
+.request-log-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.request-log-item.completed {
+  border-left: 3px solid #4caf50;
+  opacity: 0.8;
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.request-log-item.pending {
+  border-left: 3px solid #ff9800;
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.request-type-icon {
+  font-size: 0.9rem;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.request-route {
+  flex: 1;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.route-text {
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.route-text.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.request-elevator {
+  min-width: 100px;
+  text-align: center;
+}
+
+.elevator-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.elevator-badge.unassigned {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.request-status {
+  min-width: 90px;
+  text-align: center;
+}
+
+.status-completed {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-pending {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.request-time {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 70px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .request-log-item {
+    font-size: 0.75rem;
+    gap: 8px;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+  }
+
+  .request-type-icon {
+    font-size: 0.8rem;
+    width: 20px;
+  }
+
+  .request-route {
+    min-width: 100px;
+  }
+
+  .route-text {
+    font-size: 0.8rem;
+  }
+
+  .request-elevator {
+    min-width: 80px;
+  }
+
+  .elevator-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .request-status {
+    min-width: 80px;
+  }
+
+  .status-completed,
+  .status-pending {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .request-time {
+    font-size: 0.65rem;
+    min-width: 60px;
+  }
+}
