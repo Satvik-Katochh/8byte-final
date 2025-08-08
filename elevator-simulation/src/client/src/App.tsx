@@ -31,6 +31,7 @@ function App() {
     changeSpeed,
     changeFrequency,
     generateRequest,
+    generateElevatorRequest,
     testPriorityEscalation,
     onAutoRequestGenerated,
     onRequestsCompleted,
@@ -54,6 +55,7 @@ function App() {
       timestamp: string;
       status: "pending" | "completed";
       priority?: number; // Priority score for pending requests
+      assignedElevatorId?: number; // For manual elevator requests
     }>
   >([]);
 
@@ -336,6 +338,36 @@ function App() {
     generateRequest(fromFloor, toFloor);
   };
 
+  // Handle manual elevator-specific request
+  const handleManualElevatorRequest = (
+    elevatorId: number,
+    fromFloor: number,
+    toFloor: number
+  ) => {
+    const requestId = `manual_elevator_${elevatorId}_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+    console.log(
+      `🔧 Generating manual elevator request: Elevator ${elevatorId}, Floor ${fromFloor} → Floor ${toFloor} (ID: ${requestId})`
+    );
+
+    // Add to request log with elevator assignment
+    const newRequest = {
+      id: requestId,
+      type: "manual" as const,
+      fromFloor,
+      toFloor,
+      timestamp: new Date().toLocaleTimeString(),
+      status: "pending" as const,
+      assignedElevatorId: elevatorId,
+    };
+
+    setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
+
+    // Send elevator-specific request to server
+    generateElevatorRequest(elevatorId, fromFloor, toFloor);
+  };
+
   // Initialize simulation when component mounts
   useEffect(() => {
     console.log(
@@ -417,6 +449,7 @@ function App() {
             isRunning={isRunning}
             pendingRequests={simulationState.pendingRequests}
             onGenerateRequest={handleGenerateRequest}
+            onManualElevatorRequest={handleManualElevatorRequest}
           />
         </div>
 
@@ -452,137 +485,6 @@ function App() {
           </div>
         </div>
 
-        {/* Real-time Request Log */}
-        <div
-          className="panel"
-          style={{ marginTop: "20px", background: "rgba(52, 152, 219, 0.1)" }}
-        >
-          <h3>📝 Request Log (Timestamp | Origin → Destination)</h3>
-          <div
-            style={{
-              fontSize: "0.85rem",
-              maxHeight: "300px",
-              overflowY: "auto",
-              background: "rgba(255, 255, 255, 0.2)",
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid rgba(255, 255, 255, 0.3)",
-            }}
-          >
-            {requestLog.length === 0 ? (
-              <div style={{ color: "#666", fontStyle: "italic" }}>
-                No requests yet. Click floor buttons or start simulation.
-              </div>
-            ) : (
-              requestLog.map((request, index) => (
-                <div
-                  key={request.id}
-                  style={{
-                    padding: "4px 0",
-                    borderBottom:
-                      index < requestLog.length - 1
-                        ? "1px solid rgba(255, 255, 255, 0.1)"
-                        : "none",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    fontSize: "0.8rem",
-                    opacity: request.status === "completed" ? 0.7 : 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        color:
-                          request.status === "completed"
-                            ? "#2ecc71"
-                            : request.type === "manual"
-                            ? "#ff6b6b"
-                            : "#4ecdc4",
-                        fontWeight: "bold",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      {request.status === "completed"
-                        ? "✅"
-                        : request.type === "manual"
-                        ? "🔴"
-                        : "🔵"}{" "}
-                      {request.status === "completed"
-                        ? `COMPLETED (${request.type.toUpperCase()})`
-                        : request.type.toUpperCase()}
-                    </span>
-                    <span
-                      style={{
-                        color: request.status === "completed" ? "#ccc" : "#fff",
-                        textDecoration:
-                          request.status === "completed"
-                            ? "line-through"
-                            : "none",
-                      }}
-                    >
-                      Floor {request.fromFloor} → Floor {request.toFloor}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        color:
-                          request.status === "completed"
-                            ? "#2ecc71"
-                            : (request.priority ||
-                                calculatePriority(request.timestamp)) > 10
-                            ? "#ff6b6b"
-                            : "#4ecdc4",
-                        fontWeight: "bold",
-                        marginLeft: "8px",
-                        background:
-                          request.status === "completed"
-                            ? "rgba(46, 204, 113, 0.2)"
-                            : (request.priority ||
-                                calculatePriority(request.timestamp)) > 10
-                            ? "rgba(255, 107, 107, 0.2)"
-                            : "rgba(78, 205, 196, 0.2)",
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                        border: `1px solid ${
-                          request.status === "completed"
-                            ? "#2ecc71"
-                            : (request.priority ||
-                                calculatePriority(request.timestamp)) > 10
-                            ? "#ff6b6b"
-                            : "#4ecdc4"
-                        }`,
-                      }}
-                    >
-                      {request.status === "completed"
-                        ? "✅ DONE"
-                        : (request.priority ||
-                            calculatePriority(request.timestamp)) > 10
-                        ? "🔥 HIGH"
-                        : "⚡"}{" "}
-                      {request.status === "completed"
-                        ? ""
-                        : (
-                            request.priority ||
-                            calculatePriority(request.timestamp)
-                          ).toFixed(1)}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "#ccc" }}>
-                    {request.timestamp}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
         {/* Statistics Panel - Bottom of the page */}
         <StatisticsPanel
           currentTime={simulationState.currentTime}
@@ -593,6 +495,7 @@ function App() {
           maxWaitTime={simulationState.maxWaitTime}
           averageTravelTime={simulationState.averageTravelTime}
           elevatorUtilization={simulationState.elevatorUtilization}
+          requestLog={requestLog}
         />
       </main>
     </div>

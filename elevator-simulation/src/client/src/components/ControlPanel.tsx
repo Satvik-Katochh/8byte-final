@@ -15,6 +15,9 @@ interface ControlPanelProps {
   totalFloors: number;
   totalElevators: number;
   requestFrequency: number;
+  simulationHour?: number;
+  isRushHour?: boolean;
+  rushHourType?: string;
   onStart: () => void;
   onStop: () => void;
   onReset: () => void;
@@ -23,6 +26,8 @@ interface ControlPanelProps {
   onElevatorsChange: (elevators: number) => void;
   onFrequencyChange: (frequency: number) => void;
   onTestPriority: () => void;
+  onTestMorningRush?: () => void;
+  onTestEveningRush?: () => void;
 }
 
 /**
@@ -35,6 +40,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   totalFloors,
   totalElevators,
   requestFrequency,
+  simulationHour = 9,
+  isRushHour = false,
+  rushHourType = "⏰ NORMAL HOURS",
   onStart,
   onStop,
   onReset,
@@ -43,6 +51,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onElevatorsChange,
   onFrequencyChange,
   onTestPriority,
+  onTestMorningRush = () => console.log("Morning rush not implemented"),
+  onTestEveningRush = () => console.log("Evening rush not implemented"),
 }) => {
   // Handle peak traffic scenario
   const handlePeakTraffic = () => {
@@ -57,6 +67,35 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div className="control-panel panel">
       <h3>🎮 Simulation Controls</h3>
+
+      {/* Rush Hour Status Indicator */}
+      <div
+        style={{
+          padding: "10px",
+          margin: "10px 0",
+          background: isRushHour
+            ? "rgba(255, 152, 0, 0.2)"
+            : "rgba(100, 100, 100, 0.2)",
+          border: `1px solid ${
+            isRushHour ? "rgba(255, 152, 0, 0.5)" : "rgba(100, 100, 100, 0.5)"
+          }`,
+          borderRadius: "6px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: "bold",
+            marginBottom: "5px",
+          }}
+        >
+          {rushHourType}
+        </div>
+        <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+          Simulation Time: {simulationHour}:00
+        </div>
+      </div>
 
       {/* Main Control Buttons */}
       <div className="main-controls">
@@ -94,6 +133,34 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           }}
         >
           ⚡ Test Priority
+        </button>
+
+        <button
+          onClick={onTestMorningRush}
+          disabled={isRunning}
+          style={{
+            background:
+              isRushHour && rushHourType === "🌅 MORNING RUSH"
+                ? "rgba(255, 152, 0, 0.5)"
+                : "rgba(255, 152, 0, 0.3)",
+            borderColor: "rgba(255, 152, 0, 0.5)",
+          }}
+        >
+          🌅 Morning Rush
+        </button>
+
+        <button
+          onClick={onTestEveningRush}
+          disabled={isRunning}
+          style={{
+            background:
+              isRushHour && rushHourType === "🌆 EVENING RUSH"
+                ? "rgba(255, 193, 7, 0.5)"
+                : "rgba(255, 193, 7, 0.3)",
+            borderColor: "rgba(255, 193, 7, 0.5)",
+          }}
+        >
+          🌆 Evening Rush
         </button>
       </div>
 

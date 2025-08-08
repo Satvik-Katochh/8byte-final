@@ -634,4 +634,21 @@ export class SimulationEngine {
       `⏰ Long-waiting request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} } (waiting 45s) [${new Date().toLocaleTimeString()}]`
     );
   }
+
+  /**
+   * Add manual elevator-specific request from frontend
+   * @param elevatorId - Specific elevator to handle the request
+   * @param fromFloor - Origin floor
+   * @param toFloor - Destination floor
+   */
+  public addManualElevatorRequest(elevatorId: number, fromFloor: number, toFloor: number): void {
+    const request = new RequestClass(fromFloor, toFloor, this.currentTime);
+    request.isManual = true; // Mark as manual request
+    request.assignedElevatorId = elevatorId; // Assign to specific elevator
+    this.pendingRequests.push(request);
+    this.totalRequests++;
+    console.log(
+      `🎛️ Manual elevator request: Elevator ${elevatorId}, { fromFloor: ${fromFloor}, toFloor: ${toFloor} } [${new Date().toLocaleTimeString()}]`
+    );
+  }
 }

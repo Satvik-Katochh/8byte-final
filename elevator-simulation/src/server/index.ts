@@ -219,6 +219,21 @@ io.on("connection", (socket) => {
     }
   );
 
+  // Manual elevator-specific request generation
+  socket.on(
+    "generate-elevator-request",
+    (data: { elevatorId: number; fromFloor: number; toFloor: number }) => {
+      if (simulationEngine) {
+        // We'll add this method to SimulationEngine
+        simulationEngine.addManualElevatorRequest(
+          data.elevatorId,
+          data.fromFloor,
+          data.toFloor
+        );
+      }
+    }
+  );
+
   // Test priority escalation
   socket.on("test-priority-escalation", () => {
     console.log("🧪 Testing priority escalation");

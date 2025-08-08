@@ -16,6 +16,9 @@ export interface Request {
 
   // When the request was made (timestamp)
   timestamp: number;
+
+  // Which elevator is assigned to handle this request (optional)
+  assignedElevatorId?: number;
 }
 
 /**

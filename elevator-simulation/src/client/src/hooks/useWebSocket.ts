@@ -165,6 +165,21 @@ export const useWebSocket = () => {
     [sendMessage]
   );
 
+  // Generate manual elevator-specific request
+  const generateElevatorRequest = useCallback(
+    (elevatorId: number, fromFloor: number, toFloor: number) => {
+      console.log(
+        `🔌 WebSocket: Sending generate-elevator-request: Elevator ${elevatorId}, Floor ${fromFloor} → Floor ${toFloor}`
+      );
+      sendMessage("generate-elevator-request", {
+        elevatorId,
+        fromFloor,
+        toFloor,
+      });
+    },
+    [sendMessage]
+  );
+
   // Test priority escalation
   const testPriorityEscalation = useCallback(() => {
     console.log("🧪 WebSocket: Testing priority escalation");
@@ -239,6 +254,7 @@ export const useWebSocket = () => {
     changeSpeed,
     changeFrequency,
     generateRequest,
+    generateElevatorRequest,
     testPriorityEscalation,
     onAutoRequestGenerated,
     onRequestsCompleted,

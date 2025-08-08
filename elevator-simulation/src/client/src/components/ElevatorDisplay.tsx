@@ -3,7 +3,7 @@
  * Shows elevators, floors, and real-time movement
  */
 
-import React from "react";
+import React, { useState } from "react";
 import "./ElevatorDisplay.css";
 
 /**
@@ -30,6 +30,11 @@ interface ElevatorDisplayProps {
   isRunning: boolean;
   pendingRequests?: number;
   onGenerateRequest?: (fromFloor: number, toFloor: number) => void;
+  onManualElevatorRequest?: (
+    elevatorId: number,
+    fromFloor: number,
+    toFloor: number
+  ) => void;
 }
 
 /**
@@ -43,7 +48,13 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
   isRunning,
   pendingRequests = 0,
   onGenerateRequest,
+  onManualElevatorRequest,
 }) => {
+  // State for manual floor selection
+  const [selectedElevator, setSelectedElevator] = useState<number | null>(null);
+  const [manualFromFloor, setManualFromFloor] = useState<number>(1);
+  const [manualToFloor, setManualToFloor] = useState<number>(1);
+
   // Create array of floors (from top to bottom)
   const floors = Array.from({ length: totalFloors }, (_, i) => totalFloors - i);
 
@@ -69,9 +80,81 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
     return doorsOpen ? "🚪" : "🚪";
   };
 
+  // Handle manual elevator request
+  const handleManualRequest = () => {
+    if (selectedElevator && onManualElevatorRequest) {
+      onManualElevatorRequest(selectedElevator, manualFromFloor, manualToFloor);
+      // Reset selection
+      setSelectedElevator(null);
+      setManualFromFloor(1);
+      setManualToFloor(1);
+    }
+  };
+
   return (
     <div className="elevator-display">
       <h3>🏢 Building View</h3>
+
+      {/* Manual Elevator Control Panel */}
+      <div className="manual-control-panel">
+        <h4>🎛️ Manual Elevator Control</h4>
+        <div className="manual-controls">
+          <div className="control-group">
+            <label>Select Elevator:</label>
+            <select
+              value={selectedElevator || ""}
+              onChange={(e) =>
+                setSelectedElevator(
+                  e.target.value ? Number(e.target.value) : null
+                )
+              }
+            >
+              <option value="">Choose elevator...</option>
+              {elevators.map((elevator) => (
+                <option key={elevator.id} value={elevator.id}>
+                  Elevator {elevator.id} (Floor {elevator.currentFloor})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="control-group">
+            <label>From Floor:</label>
+            <select
+              value={manualFromFloor}
+              onChange={(e) => setManualFromFloor(Number(e.target.value))}
+            >
+              {floors.map((floor) => (
+                <option key={floor} value={floor}>
+                  Floor {floor}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="control-group">
+            <label>To Floor:</label>
+            <select
+              value={manualToFloor}
+              onChange={(e) => setManualToFloor(Number(e.target.value))}
+            >
+              {floors.map((floor) => (
+                <option key={floor} value={floor}>
+                  Floor {floor}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            className="manual-request-btn"
+            onClick={handleManualRequest}
+            disabled={!selectedElevator || manualFromFloor === manualToFloor}
+          >
+            🚀 Send Request
+          </button>
+        </div>
+      </div>
 
       <div className="building-container">
         {/* Floor numbers and elevators */}
@@ -94,7 +177,9 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
                       <div key={i} className="elevator-shaft">
                         {isAtThisFloor && elevator ? (
                           <div
-                            className={`elevator ${elevator.isMoving ? "moving" : ""}`}
+                            className={`elevator ${
+                              elevator.isMoving ? "moving" : ""
+                            }`}
                           >
                             <div className="elevator-info">
                               <div className="elevator-id">🛗{elevator.id}</div>
@@ -123,31 +208,55 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
                   })}
                 </div>
 
-                {/* Floor buttons */}
-                <div className="floor-buttons">
-                  <button
-                    className="floor-button up"
-                    onClick={() => {
-                      console.log(`Clicked UP button on floor ${floor}`);
-                      onGenerateRequest?.(
-                        floor,
-                        Math.min(floor + 1, totalFloors)
-                      );
-                    }}
-                    title={`Request elevator to go up from floor ${floor}`}
-                  >
-                    ⬆️
-                  </button>
-                  <button
-                    className="floor-button down"
-                    onClick={() => {
-                      console.log(`Clicked DOWN button on floor ${floor}`);
-                      onGenerateRequest?.(floor, Math.max(floor - 1, 1));
-                    }}
-                    title={`Request elevator to go down from floor ${floor}`}
-                  >
-                    ⬇️
-                  </button>
+                {/* Individual elevator buttons for this floor */}
+                <div className="elevator-buttons">
+                  {Array.from({ length: totalElevators }, (_, i) => {
+                    const elevator = elevators.find((e) => e.id === i + 1);
+                    return (
+                      <div key={i} className="elevator-button-group">
+                        <button
+                          className="elevator-button up"
+                          onClick={() => {
+                            console.log(
+                              `Clicked UP button for Elevator ${
+                                i + 1
+                              } on floor ${floor}`
+                            );
+                            onManualElevatorRequest?.(
+                              i + 1,
+                              floor,
+                              Math.min(floor + 1, totalFloors)
+                            );
+                          }}
+                          title={`Request Elevator ${
+                            i + 1
+                          } to go up from floor ${floor}`}
+                        >
+                          ⬆️
+                        </button>
+                        <button
+                          className="elevator-button down"
+                          onClick={() => {
+                            console.log(
+                              `Clicked DOWN button for Elevator ${
+                                i + 1
+                              } on floor ${floor}`
+                            );
+                            onManualElevatorRequest?.(
+                              i + 1,
+                              floor,
+                              Math.max(floor - 1, 1)
+                            );
+                          }}
+                          title={`Request Elevator ${
+                            i + 1
+                          } to go down from floor ${floor}`}
+                        >
+                          ⬇️
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Request indicator */}
@@ -174,7 +283,8 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
                   </div>
                   {elevator && (
                     <div className="elevator-shaft-status">
-                      {elevator.direction} | 👥{elevator.passengerCount}/{elevator.maxCapacity}
+                      {elevator.direction} | 👥{elevator.passengerCount}/
+                      {elevator.maxCapacity}
                     </div>
                   )}
                 </div>
