@@ -22,6 +22,7 @@ interface ControlPanelProps {
   onFloorsChange: (floors: number) => void;
   onElevatorsChange: (elevators: number) => void;
   onFrequencyChange: (frequency: number) => void;
+  onTestPriority: () => void;
 }
 
 /**
@@ -41,6 +42,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onFloorsChange,
   onElevatorsChange,
   onFrequencyChange,
+  onTestPriority,
 }) => {
   // Handle peak traffic scenario
   const handlePeakTraffic = () => {
@@ -82,6 +84,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         >
           🚀 Peak Traffic
         </button>
+
+        <button
+          onClick={onTestPriority}
+          disabled={isRunning}
+          style={{
+            background: "rgba(255, 99, 132, 0.3)",
+            borderColor: "rgba(255, 99, 132, 0.5)",
+          }}
+        >
+          ⚡ Test Priority
+        </button>
       </div>
 
       {/* Simulation Parameters */}
@@ -106,7 +119,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           <label>🏢 Floors</label>
           <input
             type="number"
-            min="5"
+            min="1"
             max="100"
             value={totalFloors}
             onChange={(e) => onFloorsChange(Number(e.target.value))}

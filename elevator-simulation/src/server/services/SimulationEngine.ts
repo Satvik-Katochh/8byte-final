@@ -35,6 +35,16 @@ export class SimulationEngine {
   private completedRequests: number = 0;
   private averageWaitTime: number = 0;
 
+  // NEW: Enhanced performance metrics
+  private maxWaitTime: number = 0;
+  private averageTravelTime: number = 0;
+  private elevatorUtilization: number = 0;
+  private completedRequestsWithTimes: Array<{
+    waitTime: number;
+    travelTime: number;
+    completionTime: number;
+  }> = [];
+
   /**
    * Constructor - Initialize the simulation
    * @param totalFloors - Number of floors in building
@@ -92,6 +102,10 @@ export class SimulationEngine {
     this.totalRequests = 0;
     this.completedRequests = 0;
     this.averageWaitTime = 0;
+    this.maxWaitTime = 0;
+    this.averageTravelTime = 0;
+    this.elevatorUtilization = 0;
+    this.completedRequestsWithTimes = [];
     this.lastRequestTime = 0;
 
     // Reset all elevators
@@ -190,7 +204,7 @@ export class SimulationEngine {
     this.sortRequestsByPriority();
 
     // Step 2: Process each pending request in priority order
-    for (let i = this.pendingRequests.length - 1; i >= 0; i--) {
+    for (let i = 0; i < this.pendingRequests.length; i++) {
       const request = this.pendingRequests[i];
 
       // Skip if request is undefined or already assigned
@@ -202,9 +216,29 @@ export class SimulationEngine {
       const bestElevator = this.scheduler.findBestElevator(request);
 
       if (bestElevator !== null) {
-        // Assign request to elevator
-        this.scheduler.assignRequest(request, bestElevator);
-        console.log(`Request assigned to Elevator ${bestElevator.id} (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`);
+        // Check if elevator is currently serving a high-priority request
+        const currentHighPriorityRequest = this.pendingRequests.find(
+          (r) =>
+            r.isAssigned &&
+            r.assignedElevatorId === bestElevator.id &&
+            r.getPriority(this.currentTime) > 10 &&
+            !r.isDeliveryComplete
+        );
+
+        // Only assign new requests if elevator is not serving a high-priority request
+        if (!currentHighPriorityRequest) {
+          // Assign request to elevator
+          this.scheduler.assignRequest(request, bestElevator);
+          console.log(
+            `Request assigned to Elevator ${
+              bestElevator.id
+            } (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`
+          );
+        } else {
+          console.log(
+            `⏸️ Skipping request assignment - Elevator ${bestElevator.id} serving high-priority request`
+          );
+        }
       }
     }
   }
@@ -218,7 +252,14 @@ export class SimulationEngine {
       // Get priority scores for both requests
       const priorityA = a.getPriority(this.currentTime);
       const priorityB = b.getPriority(this.currentTime);
-      
+
+      // Log priority comparison for debugging
+      console.log(
+        `🔍 Priority comparison: Request ${a.id} (${priorityA.toFixed(
+          2
+        )}) vs Request ${b.id} (${priorityB.toFixed(2)})`
+      );
+
       // Sort in descending order (highest priority first)
       return priorityB - priorityA;
     });
@@ -236,14 +277,14 @@ export class SimulationEngine {
       ) {
         elevator.move();
         console.log(
-          `Elevator ${elevator.id} moved to floor ${elevator.currentFloor}`
+          `🚀 Elevator ${elevator.id} moved to floor ${elevator.currentFloor}`
         );
       }
 
       // Check if elevator reached its target
       if (elevator.hasReachedTarget()) {
         console.log(
-          `Elevator ${elevator.id} reached target floor ${elevator.currentFloor}`
+          `🎯 Elevator ${elevator.id} reached target floor ${elevator.currentFloor}`
         );
 
         // Open doors
@@ -255,8 +296,8 @@ export class SimulationEngine {
         // Close doors
         elevator.closeDoors();
 
-        // Update elevator targets
-        this.scheduler.updateElevatorTargets();
+        // Update elevator targets based on assigned requests
+        this.updateElevatorTargetsForRequests(elevator);
       }
     }
   }
@@ -297,24 +338,90 @@ export class SimulationEngine {
    */
   private completeRequestsForElevator(elevator: ElevatorClass): void {
     // Find requests that were assigned to this elevator and are now completed
-    for (let i = this.pendingRequests.length - 1; i >= 0; i--) {
-      const request = this.pendingRequests[i];
+    // Sort by priority (highest priority first) to ensure high-priority requests are processed first
+    const assignedRequests = this.pendingRequests
+      .filter((request) => request.assignedElevatorId === elevator.id)
+      .sort(
+        (a, b) =>
+          b.getPriority(this.currentTime) - a.getPriority(this.currentTime)
+      );
 
+    for (const request of assignedRequests) {
       if (
         request &&
         request.isAssigned &&
         request.assignedElevatorId === elevator.id
       ) {
-        // Check if this request was served (simplified logic)
-        const wasServed = Math.random() > 0.5; // 50% chance of completion
+        // Check if this request was served using two-phase completion
+        const isAtOrigin = elevator.currentFloor === request.fromFloor;
+        const isAtDestination = elevator.currentFloor === request.toFloor;
+        const hasPassengers = elevator.passengerCount > 0;
+
+        // Phase 1: Pickup - when elevator is at origin and passengers get on
+        if (
+          isAtOrigin &&
+          !request.isPickupComplete &&
+          elevator.passengerCount > 0
+        ) {
+          request.isPickupComplete = true;
+          request.pickupTime = this.currentTime; // Track when pickup happened
+          console.log(
+            `🔄 Pickup completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} at time ${this.currentTime}`
+          );
+          // Break after marking pickup complete for this specific request
+          break;
+        }
+
+        // Alternative pickup completion: when elevator is at origin and has capacity
+        if (isAtOrigin && !request.isPickupComplete && elevator.hasCapacity()) {
+          request.isPickupComplete = true;
+          console.log(
+            `🔄 Pickup completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} (at origin with capacity)`
+          );
+          // Break after marking pickup complete for this specific request
+          break;
+        }
+
+        // Debug: Log what's happening with each request
+        console.log(
+          `🔍 Request ${request.id}: atOrigin=${isAtOrigin}, pickupComplete=${request.isPickupComplete}, passengers=${elevator.passengerCount}`
+        );
+
+        // Phase 2: Delivery - when elevator is at destination and passengers get off
+        const wasServed =
+          isAtDestination &&
+          request.isPickupComplete &&
+          !request.isDeliveryComplete &&
+          elevator.passengerCount === 0;
 
         if (wasServed) {
+          // Mark delivery as complete
+          request.isDeliveryComplete = true;
+
           // Mark request as completed
           request.isAssigned = false;
           delete request.assignedElevatorId;
 
           // Remove from pending requests
-          this.pendingRequests.splice(i, 1);
+          const index = this.pendingRequests.findIndex(
+            (r) => r.id === request.id
+          );
+          if (index !== -1) {
+            this.pendingRequests.splice(index, 1);
+          }
+
+          // Calculate timing metrics for this completed request
+          const waitTime = request.getWaitTime(this.currentTime);
+          const travelTime = request.pickupTime
+            ? this.currentTime - request.pickupTime
+            : 0; // Time from pickup to delivery
+
+          // Store timing data for statistics
+          this.completedRequestsWithTimes.push({
+            waitTime: waitTime,
+            travelTime: travelTime,
+            completionTime: this.currentTime,
+          });
 
           // Increment completed requests
           this.completedRequests++;
@@ -323,10 +430,81 @@ export class SimulationEngine {
           const requestType = request.isManual ? "MANUAL" : "AUTO";
 
           console.log(
-            `✅ ${requestType} request completed: Floor ${request.fromFloor} → Floor ${request.toFloor} by Elevator ${elevator.id}`
+            `🎉 ${requestType} request completed: Floor ${
+              request.fromFloor
+            } → Floor ${request.toFloor} by Elevator ${
+              elevator.id
+            } (waited ${waitTime.toFixed(1)}s, travel: ${travelTime.toFixed(
+              1
+            )}s, priority: ${request.getPriority(this.currentTime).toFixed(1)})`
+          );
+        } else {
+          // Debug: Log why request wasn't completed
+          console.log(
+            `🔍 Request ${request.id} not completed: atDestination=${isAtDestination}, pickupComplete=${request.isPickupComplete}, deliveryComplete=${request.isDeliveryComplete}, passengers=${elevator.passengerCount}, elevatorFloor=${elevator.currentFloor}, requestToFloor=${request.toFloor}`
           );
         }
       }
+    }
+  }
+
+  /**
+   * Update elevator targets based on assigned requests
+   * @param elevator - The elevator to update targets for
+   */
+  private updateElevatorTargetsForRequests(elevator: ElevatorClass): void {
+    // Find requests assigned to this elevator
+    const assignedRequests = this.pendingRequests.filter(
+      (request) => request.assignedElevatorId === elevator.id
+    );
+
+    if (assignedRequests.length > 0) {
+      // Sort by priority (highest priority first) to ensure high-priority requests are served first
+      const sortedRequests = assignedRequests.sort(
+        (a, b) =>
+          b.getPriority(this.currentTime) - a.getPriority(this.currentTime)
+      );
+
+      // Get the highest priority request
+      const nextRequest = sortedRequests[0];
+
+      if (nextRequest) {
+        // Two-phase targeting: origin first, then destination
+        if (!nextRequest.isPickupComplete) {
+          // Phase 1: Go to origin floor to pick up passengers
+          elevator.setTarget(nextRequest.fromFloor);
+          console.log(
+            `🎯 Elevator ${elevator.id} targeting Floor ${
+              nextRequest.fromFloor
+            } (pickup) for request Floor ${nextRequest.fromFloor} → Floor ${
+              nextRequest.toFloor
+            } (Priority: ${nextRequest
+              .getPriority(this.currentTime)
+              .toFixed(1)})`
+          );
+        } else if (!nextRequest.isDeliveryComplete) {
+          // Phase 2: Go to destination floor to drop off passengers
+          elevator.setTarget(nextRequest.toFloor);
+          console.log(
+            `🎯 Elevator ${elevator.id} targeting Floor ${
+              nextRequest.toFloor
+            } (delivery) for request Floor ${nextRequest.fromFloor} → Floor ${
+              nextRequest.toFloor
+            } (Priority: ${nextRequest
+              .getPriority(this.currentTime)
+              .toFixed(1)})`
+          );
+        } else {
+          // Request is complete, remove it and move to next request
+          console.log(
+            `✅ Request completed: Floor ${nextRequest.fromFloor} → Floor ${nextRequest.toFloor}`
+          );
+          // The request will be removed in completeRequestsForElevator
+        }
+      }
+    } else {
+      // No more requests, go idle
+      elevator.stop();
     }
   }
 
@@ -336,9 +514,32 @@ export class SimulationEngine {
   private updateStatistics(): void {
     // Calculate average wait time for completed requests
     if (this.completedRequests > 0) {
-      // Simplified calculation
-      this.averageWaitTime = this.currentTime / this.completedRequests;
+      // Calculate average wait time from completed requests
+      const totalWaitTime = this.completedRequestsWithTimes.reduce(
+        (sum, request) => sum + request.waitTime,
+        0
+      );
+      this.averageWaitTime = totalWaitTime / this.completedRequests;
+
+      // Calculate max wait time
+      this.maxWaitTime = Math.max(
+        ...this.completedRequestsWithTimes.map((request) => request.waitTime)
+      );
+
+      // Calculate average travel time
+      const totalTravelTime = this.completedRequestsWithTimes.reduce(
+        (sum, request) => sum + request.travelTime,
+        0
+      );
+      this.averageTravelTime = totalTravelTime / this.completedRequests;
     }
+
+    // Calculate elevator utilization rate
+    const totalElevatorTime = this.elevators.reduce(
+      (sum, elevator) => sum + (elevator.isMoving ? 1 : 0),
+      0
+    );
+    this.elevatorUtilization = (totalElevatorTime / this.totalElevators) * 100;
   }
 
   /**
@@ -389,6 +590,9 @@ export class SimulationEngine {
       totalRequests: this.totalRequests,
       completedRequests: this.completedRequests,
       averageWaitTime: this.averageWaitTime,
+      maxWaitTime: this.maxWaitTime,
+      averageTravelTime: this.averageTravelTime,
+      elevatorUtilization: this.elevatorUtilization,
     };
   }
 
@@ -413,6 +617,21 @@ export class SimulationEngine {
     this.totalRequests++;
     console.log(
       `📋 Manual request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} } [${new Date().toLocaleTimeString()}]`
+    );
+  }
+
+  /**
+   * Add a test request that simulates a long-waiting request
+   * This helps test the priority escalation system
+   */
+  public addLongWaitingRequest(fromFloor: number, toFloor: number): void {
+    // Create a request that appears to have been waiting for 45 seconds
+    const request = new RequestClass(fromFloor, toFloor, this.currentTime - 45);
+    request.isManual = true;
+    this.pendingRequests.push(request);
+    this.totalRequests++;
+    console.log(
+      `⏰ Long-waiting request: { fromFloor: ${fromFloor}, toFloor: ${toFloor} } (waiting 45s) [${new Date().toLocaleTimeString()}]`
     );
   }
 }

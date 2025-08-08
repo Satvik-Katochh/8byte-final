@@ -31,8 +31,10 @@ function App() {
     changeSpeed,
     changeFrequency,
     generateRequest,
+    testPriorityEscalation,
     onAutoRequestGenerated,
     onRequestsCompleted,
+    onTestRequestCreated,
   } = useWebSocket();
 
   // Application state
@@ -88,6 +90,9 @@ function App() {
     totalRequests: 0,
     completedRequests: 0,
     averageWaitTime: 0,
+    maxWaitTime: 0,
+    averageTravelTime: 0,
+    elevatorUtilization: 0,
   };
 
   // Handle auto-request notifications
@@ -110,7 +115,7 @@ function App() {
             status: "pending" as const,
           };
 
-          setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
+          setRequestLog((prev) => [newRequest, ...prev.slice(0, 49)]); // Keep last 50 requests
         }
 
         // Update the counter for next time
@@ -145,8 +150,14 @@ function App() {
 
           let completedCount = 0;
 
-          // First complete manual requests
-          for (const request of manualRequests) {
+          // First complete manual requests (prioritize high-priority ones)
+          const sortedManualRequests = manualRequests.sort((a, b) => {
+            const priorityA = a.priority || calculatePriority(a.timestamp);
+            const priorityB = b.priority || calculatePriority(b.timestamp);
+            return priorityB - priorityA; // Higher priority first
+          });
+
+          for (const request of sortedManualRequests) {
             if (completedCount < data.count) {
               const index = updated.findIndex((r) => r.id === request.id);
               if (index !== -1) {
@@ -155,6 +166,7 @@ function App() {
                   status: "completed" as const,
                 };
                 completedCount++;
+                console.log(`✅ UI: Marked request ${request.id} as completed`);
               }
             }
           }
@@ -169,6 +181,9 @@ function App() {
                   status: "completed" as const,
                 };
                 completedCount++;
+                console.log(
+                  `✅ UI: Marked auto request ${request.id} as completed`
+                );
               }
             }
           }
@@ -180,6 +195,37 @@ function App() {
       onRequestsCompleted(handleRequestCompletion);
     }
   }, [onRequestsCompleted]);
+
+  // Handle test request notifications
+  useEffect(() => {
+    if (onTestRequestCreated) {
+      const handleTestRequest = (data: {
+        type: "long-waiting" | "normal";
+        fromFloor: number;
+        toFloor: number;
+        timestamp: string;
+        priority: number;
+      }) => {
+        console.log(
+          `🧪 Test request created: ${data.type} Floor ${data.fromFloor} → Floor ${data.toFloor}`
+        );
+
+        const newRequest = {
+          id: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: "manual" as const,
+          fromFloor: data.fromFloor,
+          toFloor: data.toFloor,
+          timestamp: data.timestamp,
+          status: "pending" as const,
+          priority: data.priority,
+        };
+
+        setRequestLog((prev) => [newRequest, ...prev.slice(0, 9)]); // Keep last 10 requests
+      };
+
+      onTestRequestCreated(handleTestRequest);
+    }
+  }, [onTestRequestCreated]);
 
   /**
    * Start the simulation
@@ -359,6 +405,7 @@ function App() {
           onFloorsChange={handleFloorsChange}
           onElevatorsChange={handleElevatorsChange}
           onFrequencyChange={handleFrequencyChange}
+          onTestPriority={testPriorityEscalation}
         />
 
         {/* Main Simulation Display */}
@@ -414,7 +461,7 @@ function App() {
           <div
             style={{
               fontSize: "0.85rem",
-              maxHeight: "150px",
+              maxHeight: "300px",
               overflowY: "auto",
               background: "rgba(255, 255, 255, 0.2)",
               padding: "10px",
@@ -482,21 +529,50 @@ function App() {
                     >
                       Floor {request.fromFloor} → Floor {request.toFloor}
                     </span>
-                    {request.status === "pending" && (
-                      <span
-                        style={{
-                          fontSize: "0.7rem",
-                          color:
-                            calculatePriority(request.timestamp) > 10
-                              ? "#ff6b6b"
-                              : "#4ecdc4",
-                          fontWeight: "bold",
-                          marginLeft: "8px",
-                        }}
-                      >
-                        ⚡ {calculatePriority(request.timestamp).toFixed(1)}
-                      </span>
-                    )}
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        color:
+                          request.status === "completed"
+                            ? "#2ecc71"
+                            : (request.priority ||
+                                calculatePriority(request.timestamp)) > 10
+                            ? "#ff6b6b"
+                            : "#4ecdc4",
+                        fontWeight: "bold",
+                        marginLeft: "8px",
+                        background:
+                          request.status === "completed"
+                            ? "rgba(46, 204, 113, 0.2)"
+                            : (request.priority ||
+                                calculatePriority(request.timestamp)) > 10
+                            ? "rgba(255, 107, 107, 0.2)"
+                            : "rgba(78, 205, 196, 0.2)",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                        border: `1px solid ${
+                          request.status === "completed"
+                            ? "#2ecc71"
+                            : (request.priority ||
+                                calculatePriority(request.timestamp)) > 10
+                            ? "#ff6b6b"
+                            : "#4ecdc4"
+                        }`,
+                      }}
+                    >
+                      {request.status === "completed"
+                        ? "✅ DONE"
+                        : (request.priority ||
+                            calculatePriority(request.timestamp)) > 10
+                        ? "🔥 HIGH"
+                        : "⚡"}{" "}
+                      {request.status === "completed"
+                        ? ""
+                        : (
+                            request.priority ||
+                            calculatePriority(request.timestamp)
+                          ).toFixed(1)}
+                    </span>
                   </div>
                   <div style={{ fontSize: "0.7rem", color: "#ccc" }}>
                     {request.timestamp}
@@ -514,6 +590,9 @@ function App() {
           totalRequests={simulationState.totalRequests}
           completedRequests={simulationState.completedRequests}
           averageWaitTime={simulationState.averageWaitTime}
+          maxWaitTime={simulationState.maxWaitTime}
+          averageTravelTime={simulationState.averageTravelTime}
+          elevatorUtilization={simulationState.elevatorUtilization}
         />
       </main>
     </div>

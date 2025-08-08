@@ -46,7 +46,7 @@ export class Scheduler {
       // For high-priority requests, consider all suitable elevators
       // For normal requests, pick the closest one
       const requestPriority = request.getPriority(Date.now());
-      
+
       if (requestPriority > 10) {
         // High priority request - consider all suitable elevators
         return this.findBestElevatorForHighPriority(suitableElevators, request);
@@ -189,7 +189,8 @@ export class Scheduler {
     // Add request to elevator's assigned requests
     elevator.assignedRequests.push(request.id);
 
-    // Set elevator's target to the request's origin floor
+    // Set elevator's target to the request's origin floor first
+    // The elevator will pick up passengers here, then go to destination
     elevator.setTarget(request.fromFloor);
   }
 
@@ -201,7 +202,9 @@ export class Scheduler {
     for (const elevator of this.elevators) {
       // If elevator has reached its target and has assigned requests
       if (elevator.hasReachedTarget() && elevator.assignedRequests.length > 0) {
-        // Simple approach: just move in the current direction
+        // Find the next request for this elevator
+        // For now, just continue in the current direction
+        // The SimulationEngine will handle the actual request destinations
         if (elevator.direction === "up") {
           // Don't go beyond the top floor
           const nextFloor = Math.min(elevator.currentFloor + 1, 5); // Hardcoded for now

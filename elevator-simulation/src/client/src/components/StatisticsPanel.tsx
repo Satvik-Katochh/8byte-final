@@ -15,6 +15,9 @@ interface StatisticsPanelProps {
   totalRequests: number;
   completedRequests: number;
   averageWaitTime: number;
+  maxWaitTime: number;
+  averageTravelTime: number;
+  elevatorUtilization: number;
 }
 
 /**
@@ -27,6 +30,9 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
   totalRequests,
   completedRequests,
   averageWaitTime,
+  maxWaitTime,
+  averageTravelTime,
+  elevatorUtilization,
 }) => {
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -37,20 +43,52 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
       .padStart(2, "0")}`;
   };
 
-  // Calculate completion rate
-  const completionRate =
-    totalRequests > 0 ? (completedRequests / totalRequests) * 100 : 0;
-
-  // Calculate requests per minute
-  const requestsPerMinute =
-    currentTime > 0 ? (totalRequests / currentTime) * 60 : 0;
-
   return (
     <div className="statistics-panel panel">
       <h3>📊 Simulation Statistics</h3>
 
       <div className="stats-grid">
-        {/* Time */}
+        {/* REQUIRED METRICS - From requirements.md */}
+
+        {/* Average Wait Time - REQUIRED */}
+        <div className="stat-item">
+          <div className="stat-icon">⏰</div>
+          <div className="stat-content">
+            <div className="stat-label">Average Wait Time</div>
+            <div className="stat-value">{averageWaitTime.toFixed(1)}s</div>
+          </div>
+        </div>
+
+        {/* Max Wait Time - REQUIRED */}
+        <div className="stat-item">
+          <div className="stat-icon">⏱️</div>
+          <div className="stat-content">
+            <div className="stat-label">Max Wait Time</div>
+            <div className="stat-value">{maxWaitTime.toFixed(1)}s</div>
+          </div>
+        </div>
+
+        {/* Average Travel Time - REQUIRED */}
+        <div className="stat-item">
+          <div className="stat-icon">🚀</div>
+          <div className="stat-content">
+            <div className="stat-label">Average Travel Time</div>
+            <div className="stat-value">{averageTravelTime.toFixed(1)}s</div>
+          </div>
+        </div>
+
+        {/* Elevator Utilization Rate - REQUIRED */}
+        <div className="stat-item">
+          <div className="stat-icon">📊</div>
+          <div className="stat-content">
+            <div className="stat-label">Elevator Utilization Rate</div>
+            <div className="stat-value">{elevatorUtilization.toFixed(1)}%</div>
+          </div>
+        </div>
+
+        {/* INFORMATIVE METRICS - Shows system performance */}
+
+        {/* Simulation Time - Shows test duration */}
         <div className="stat-item">
           <div className="stat-icon">⏱️</div>
           <div className="stat-content">
@@ -59,7 +97,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           </div>
         </div>
 
-        {/* Total Requests */}
+        {/* Total Requests - Shows system load */}
         <div className="stat-item">
           <div className="stat-icon">📋</div>
           <div className="stat-content">
@@ -68,7 +106,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           </div>
         </div>
 
-        {/* Pending Requests */}
+        {/* Pending Requests - Shows current queue */}
         <div className="stat-item">
           <div className="stat-icon">⏳</div>
           <div className="stat-content">
@@ -77,7 +115,7 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           </div>
         </div>
 
-        {/* Completed Requests */}
+        {/* Completed Requests - Shows processed load */}
         <div className="stat-item">
           <div className="stat-icon">✅</div>
           <div className="stat-content">
@@ -86,93 +124,113 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
           </div>
         </div>
 
-        {/* Completion Rate */}
+        {/* Completion Rate - Shows efficiency */}
         <div className="stat-item">
           <div className="stat-icon">📈</div>
           <div className="stat-content">
             <div className="stat-label">Completion Rate</div>
-            <div className="stat-value">{completionRate.toFixed(1)}%</div>
+            <div className="stat-value">
+              {totalRequests > 0
+                ? ((completedRequests / totalRequests) * 100).toFixed(1)
+                : 0}
+              %
+            </div>
           </div>
         </div>
 
-        {/* Requests per Minute */}
+        {/* Requests per Minute - Shows throughput */}
         <div className="stat-item">
           <div className="stat-icon">🚀</div>
           <div className="stat-content">
             <div className="stat-label">Requests/Minute</div>
-            <div className="stat-value">{requestsPerMinute.toFixed(1)}</div>
-          </div>
-        </div>
-
-        {/* Average Wait Time */}
-        <div className="stat-item">
-          <div className="stat-icon">⏰</div>
-          <div className="stat-content">
-            <div className="stat-label">Avg Wait Time</div>
-            <div className="stat-value">{averageWaitTime.toFixed(1)}s</div>
-          </div>
-        </div>
-
-        {/* Performance Indicator */}
-        <div className="stat-item">
-          <div className="stat-icon">🎯</div>
-          <div className="stat-content">
-            <div className="stat-label">Performance</div>
             <div className="stat-value">
-              {averageWaitTime < 15
-                ? "🟢 Excellent"
-                : averageWaitTime < 30
-                ? "🟡 Good"
-                : averageWaitTime < 60
-                ? "🟠 Fair"
-                : "🔴 Poor"}
+              {currentTime > 0
+                ? ((totalRequests / currentTime) * 60).toFixed(1)
+                : 0}
+            </div>
+          </div>
+        </div>
+
+        {/* Throughput Rate - Shows requests processed per minute */}
+        <div className="stat-item">
+          <div className="stat-icon">📊</div>
+          <div className="stat-content">
+            <div className="stat-label">Throughput Rate</div>
+            <div className="stat-value">
+              {currentTime > 0
+                ? ((completedRequests / currentTime) * 60).toFixed(1)
+                : 0}
+              /min
+            </div>
+          </div>
+        </div>
+
+        {/* Queue Length - Shows current system load */}
+        <div className="stat-item">
+          <div className="stat-icon">📋</div>
+          <div className="stat-content">
+            <div className="stat-label">Queue Length</div>
+            <div className="stat-value">
+              {pendingRequests > 10
+                ? "🔴 High"
+                : pendingRequests > 5
+                ? "🟡 Medium"
+                : "🟢 Low"}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Performance Summary */}
+      {/* Performance Summary - Shows high-level assessment */}
       <div className="performance-summary">
         <div className="summary-title">📋 Performance Summary</div>
         <div className="summary-content">
           <div className="summary-item">
-            <span>Efficiency:</span>
+            <span>Overall Performance:</span>
             <span
               className={
-                completionRate > 80
+                averageWaitTime < 15 &&
+                totalRequests > 0 &&
+                completedRequests / totalRequests > 0.8
                   ? "good"
-                  : completionRate > 60
+                  : averageWaitTime < 30 &&
+                    totalRequests > 0 &&
+                    completedRequests / totalRequests > 0.6
                   ? "fair"
                   : "poor"
               }
             >
-              {completionRate > 80
-                ? "🟢 High"
-                : completionRate > 60
-                ? "🟡 Medium"
-                : "🔴 Low"}
+              {averageWaitTime < 15 &&
+              totalRequests > 0 &&
+              completedRequests / totalRequests > 0.8
+                ? "🟢 Excellent"
+                : averageWaitTime < 30 &&
+                  totalRequests > 0 &&
+                  completedRequests / totalRequests > 0.6
+                ? "🟡 Good"
+                : "🔴 Poor"}
             </span>
           </div>
           <div className="summary-item">
-            <span>Speed:</span>
+            <span>System Load:</span>
             <span
               className={
-                requestsPerMinute > 2
+                pendingRequests <= 2
                   ? "good"
-                  : requestsPerMinute > 1
+                  : pendingRequests <= 5
                   ? "fair"
                   : "poor"
               }
             >
-              {requestsPerMinute > 2
-                ? "🟢 Fast"
-                : requestsPerMinute > 1
-                ? "🟡 Normal"
-                : "🔴 Slow"}
+              {pendingRequests <= 2
+                ? "🟢 Light"
+                : pendingRequests <= 5
+                ? "🟡 Moderate"
+                : "🔴 Heavy"}
             </span>
           </div>
           <div className="summary-item">
-            <span>Wait Time:</span>
+            <span>Response Quality:</span>
             <span
               className={
                 averageWaitTime < 15
@@ -187,6 +245,24 @@ const StatisticsPanel: React.FC<StatisticsPanelProps> = ({
                 : averageWaitTime < 30
                 ? "🟡 Acceptable"
                 : "🔴 Slow"}
+            </span>
+          </div>
+          <div className="summary-item">
+            <span>Efficiency:</span>
+            <span
+              className={
+                totalRequests > 0 && completedRequests / totalRequests > 0.8
+                  ? "good"
+                  : totalRequests > 0 && completedRequests / totalRequests > 0.6
+                  ? "fair"
+                  : "poor"
+              }
+            >
+              {totalRequests > 0 && completedRequests / totalRequests > 0.8
+                ? "🟢 High"
+                : totalRequests > 0 && completedRequests / totalRequests > 0.6
+                ? "🟡 Medium"
+                : "🔴 Low"}
             </span>
           </div>
         </div>

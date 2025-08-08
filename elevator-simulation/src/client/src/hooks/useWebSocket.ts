@@ -27,6 +27,9 @@ interface SimulationState {
   totalRequests: number;
   completedRequests: number;
   averageWaitTime: number;
+  maxWaitTime: number;
+  averageTravelTime: number;
+  elevatorUtilization: number;
 }
 
 interface SimulationConfig {
@@ -162,6 +165,12 @@ export const useWebSocket = () => {
     [sendMessage]
   );
 
+  // Test priority escalation
+  const testPriorityEscalation = useCallback(() => {
+    console.log("🧪 WebSocket: Testing priority escalation");
+    sendMessage("test-priority-escalation");
+  }, [sendMessage]);
+
   // Handle auto-request notifications
   const onAutoRequestGenerated = useCallback(
     (callback: (data: { count: number; timestamp: string }) => void) => {
@@ -188,6 +197,27 @@ export const useWebSocket = () => {
     []
   );
 
+  // Handle test request notifications
+  const onTestRequestCreated = useCallback(
+    (
+      callback: (data: {
+        type: "long-waiting" | "normal";
+        fromFloor: number;
+        toFloor: number;
+        timestamp: string;
+        priority: number;
+      }) => void
+    ) => {
+      if (socketRef.current) {
+        // Remove old listener first
+        socketRef.current.off("test-request-created");
+        // Add new listener
+        socketRef.current.on("test-request-created", callback);
+      }
+    },
+    []
+  );
+
   // Connect on mount
   useEffect(() => {
     connect();
@@ -209,8 +239,10 @@ export const useWebSocket = () => {
     changeSpeed,
     changeFrequency,
     generateRequest,
+    testPriorityEscalation,
     onAutoRequestGenerated,
     onRequestsCompleted,
+    onTestRequestCreated,
     connect,
     disconnect,
   };

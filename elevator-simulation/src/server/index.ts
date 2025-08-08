@@ -66,6 +66,7 @@ io.on("connection", (socket) => {
   socket.removeAllListeners("change-speed");
   socket.removeAllListeners("change-frequency");
   socket.removeAllListeners("generate-request");
+  socket.removeAllListeners("test-priority-escalation");
 
   // Initialize simulation when client connects
   socket.on(
@@ -217,6 +218,68 @@ io.on("connection", (socket) => {
       }
     }
   );
+
+  // Test priority escalation
+  socket.on("test-priority-escalation", () => {
+    console.log("🧪 Testing priority escalation");
+    if (simulationEngine) {
+      const totalFloors = simulationEngine.getState().totalFloors;
+
+      // Dynamic floor calculation for ANY configuration
+      let fromFloor, toFloor, normalFromFloor, normalToFloor;
+
+      if (totalFloors === 1) {
+        // Edge case: only 1 floor - can't test priority
+        console.log("⚠️ Cannot test priority with only 1 floor");
+        return;
+      } else if (totalFloors === 2) {
+        // 2 floors: Floor 1 → Floor 2
+        fromFloor = 1;
+        toFloor = 2;
+        normalFromFloor = 1;
+        normalToFloor = 2;
+      } else if (totalFloors === 3) {
+        // 3 floors: Floor 1 → Floor 3 vs Floor 2 → Floor 3
+        fromFloor = 1;
+        toFloor = 3;
+        normalFromFloor = 2;
+        normalToFloor = 3;
+      } else {
+        // 4+ floors: Use middle and top floors
+        fromFloor = Math.floor(totalFloors / 2);
+        toFloor = totalFloors;
+        normalFromFloor = 1;
+        normalToFloor = Math.floor(totalFloors / 2);
+      }
+
+      // Create a long-waiting request to test priority
+      simulationEngine.addLongWaitingRequest(fromFloor, toFloor);
+
+      // Also create a normal request for comparison
+      simulationEngine.addManualRequest(normalFromFloor, normalToFloor);
+
+      // Send notifications to frontend for both requests
+      socket.emit("test-request-created", {
+        type: "long-waiting",
+        fromFloor: fromFloor,
+        toFloor: toFloor,
+        timestamp: new Date().toLocaleTimeString(),
+        priority: 65.0, // High priority
+      });
+
+      socket.emit("test-request-created", {
+        type: "normal",
+        fromFloor: normalFromFloor,
+        toFloor: normalToFloor,
+        timestamp: new Date().toLocaleTimeString(),
+        priority: 1.0, // Normal priority
+      });
+
+      console.log(
+        `🧪 Created test requests: long-waiting (Floor ${fromFloor} → Floor ${toFloor}) and normal (Floor ${normalFromFloor} → Floor ${normalToFloor})`
+      );
+    }
+  });
 
   // Handle disconnection
   socket.on("disconnect", () => {
