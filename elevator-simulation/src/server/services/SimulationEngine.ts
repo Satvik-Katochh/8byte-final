@@ -616,6 +616,7 @@ export class SimulationEngine {
         if (elevator.hasCapacity()) {
           elevator.addPassengers(1);
           request.isPickupComplete = true;
+          request.pickupTime = this.currentTime;
           this.log(
             `✅ Pickup completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} at time ${this.currentTime}`
           );
@@ -634,9 +635,39 @@ export class SimulationEngine {
       ) {
         elevator.removePassengers(1);
         request.isDeliveryComplete = true;
+        request.deliveryTime = this.currentTime;
+
+        // Calculate completion times
+        const waitTime =
+          (request.pickupTime || this.currentTime) - request.timestamp;
+        const travelTime =
+          (request.deliveryTime || this.currentTime) -
+          (request.pickupTime || this.currentTime);
+
+        // Add to completed requests
+        this.completedRequests++;
+        this.completedRequestsWithTimes.push({
+          waitTime,
+          travelTime,
+          completionTime: this.currentTime,
+        });
+
         this.log(
-          `✅ Delivery completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} at time ${this.currentTime}`
+          `✅ Delivery completed for request Floor ${
+            request.fromFloor
+          } → Floor ${request.toFloor} at time ${
+            this.currentTime
+          } (Wait: ${waitTime.toFixed(1)}s, Travel: ${travelTime.toFixed(1)}s)`
         );
+
+        // Remove completed request from pending list
+        const requestIndex = this.pendingRequests.indexOf(request);
+        if (requestIndex > -1) {
+          this.pendingRequests.splice(requestIndex, 1);
+          this.log(
+            `🗑️ Removed completed request ${request.id} from pending list`
+          );
+        }
       }
     }
   }

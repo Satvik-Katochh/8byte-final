@@ -19,6 +19,12 @@ export interface Request {
 
   // Which elevator is assigned to handle this request (optional)
   assignedElevatorId?: number;
+
+  // When the pickup was completed (for travel time calculation)
+  pickupTime?: number;
+
+  // When the delivery was completed (for travel time calculation)
+  deliveryTime?: number;
 }
 
 /**

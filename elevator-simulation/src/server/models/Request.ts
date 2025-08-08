@@ -24,6 +24,7 @@ export class RequestClass implements Request {
   public isPickupComplete: boolean = false; // Whether passengers have been picked up
   public isDeliveryComplete: boolean = false; // Whether passengers have been delivered
   public pickupTime?: number; // When the pickup was completed (for travel time calculation)
+  public deliveryTime?: number; // When the delivery was completed (for travel time calculation)
 
   /**
    * Constructor - Creates a new request
