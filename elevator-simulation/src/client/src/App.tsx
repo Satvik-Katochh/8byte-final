@@ -34,6 +34,8 @@ function App() {
     generateRequest,
     generateElevatorRequest,
     testPriorityEscalation,
+    startMorningRush,
+    startEveningRush,
     onAutoRequestGenerated,
     onRequestsCompleted,
     onTestRequestCreated,
@@ -96,6 +98,10 @@ function App() {
     maxWaitTime: 0,
     averageTravelTime: 0,
     elevatorUtilization: 0,
+    // NEW: Rush hour state defaults
+    isRushHour: false,
+    rushHourType: "⏰ NORMAL HOURS",
+    simulationHour: 9,
   };
 
   // Handle auto-request notifications
@@ -431,6 +437,9 @@ function App() {
           totalFloors={totalFloors}
           totalElevators={totalElevators}
           requestFrequency={requestFrequency}
+          simulationHour={simulationState.simulationHour}
+          isRushHour={simulationState.isRushHour}
+          rushHourType={simulationState.rushHourType}
           onStart={handleStart}
           onStop={handleStop}
           onReset={handleReset}
@@ -439,6 +448,8 @@ function App() {
           onElevatorsChange={handleElevatorsChange}
           onFrequencyChange={handleFrequencyChange}
           onTestPriority={testPriorityEscalation}
+          onStartMorningRush={startMorningRush}
+          onStartEveningRush={startEveningRush}
         />
 
         {/* Main Simulation Display */}

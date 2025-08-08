@@ -68,6 +68,57 @@ io.on("connection", (socket) => {
   socket.removeAllListeners("generate-request");
   socket.removeAllListeners("test-priority-escalation");
 
+  // Morning rush hour - REGISTER AFTER REMOVE
+  socket.on("start-morning-rush", (data) => {
+    console.log("🌅 Morning rush hour requested");
+    console.log("🌅 Received data:", data);
+    console.log("🌅 Simulation engine exists?", !!simulationEngine);
+    try {
+      if (simulationEngine) {
+        simulationEngine.startMorningRush();
+        // Send updated state with rush hour info
+        const updatedState = simulationEngine.getState();
+        console.log("🌅 Updated state:", updatedState);
+        socket.emit("simulation-state", {
+          type: "simulation-state",
+          state: updatedState,
+        });
+      } else {
+        console.log("🌅 Error: No simulation engine available");
+      }
+    } catch (error) {
+      console.error("🌅 Error in morning rush handler:", error);
+    }
+  });
+
+  // Evening rush hour - REGISTER AFTER REMOVE
+  socket.on("start-evening-rush", (data) => {
+    console.log("🌆 Evening rush hour requested");
+    console.log("🌆 Received data:", data);
+    console.log("🌆 Simulation engine exists?", !!simulationEngine);
+    try {
+      if (simulationEngine) {
+        simulationEngine.startEveningRush();
+        // Send updated state with rush hour info
+        const updatedState = simulationEngine.getState();
+        console.log("🌆 Updated state:", updatedState);
+        socket.emit("simulation-state", {
+          type: "simulation-state",
+          state: updatedState,
+        });
+      } else {
+        console.log("🌆 Error: No simulation engine available");
+      }
+    } catch (error) {
+      console.error("🌆 Error in evening rush handler:", error);
+    }
+  });
+
+  // Test handler to see if custom messages work
+  socket.on("test-message", (data) => {
+    console.log("🧪 Test message received:", data);
+  });
+
   // Initialize simulation when client connects
   socket.on(
     "initialize-simulation",

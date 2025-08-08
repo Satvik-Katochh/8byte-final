@@ -30,6 +30,10 @@ interface SimulationState {
   maxWaitTime: number;
   averageTravelTime: number;
   elevatorUtilization: number;
+  // NEW: Rush hour state
+  isRushHour?: boolean;
+  rushHourType?: string;
+  simulationHour?: number;
 }
 
 interface SimulationConfig {
@@ -103,11 +107,18 @@ export const useWebSocket = () => {
 
   // Send message to server
   const sendMessage = useCallback((type: string, data?: any) => {
+    console.log(`🔌 sendMessage called with type: "${type}", data:`, data);
     if (socketRef.current && socketRef.current.connected) {
-      console.log(`🔌 WebSocket: Emitting ${type}`, data);
-      socketRef.current.emit(type, data);
+      console.log(`🔌 WebSocket: Emitting ${type}`, data || "no data");
+      try {
+        socketRef.current.emit(type, data);
+        console.log(`🔌 WebSocket: Successfully emitted ${type}`);
+      } catch (error) {
+        console.error(`🔌 WebSocket: Error emitting ${type}:`, error);
+      }
     } else {
       console.error("Socket.IO not connected");
+      console.error("Socket ref:", socketRef.current);
       setError("Socket.IO not connected");
     }
   }, []);
@@ -186,6 +197,38 @@ export const useWebSocket = () => {
     sendMessage("test-priority-escalation");
   }, [sendMessage]);
 
+  // Start morning rush hour
+  const startMorningRush = useCallback(() => {
+    console.log("🌅 WebSocket: Starting morning rush hour");
+    console.log(
+      "🌅 WebSocket: Socket connected?",
+      socketRef.current?.connected
+    );
+    console.log("🌅 WebSocket: Socket ID:", socketRef.current?.id);
+    console.log("🌅 WebSocket: About to emit start-morning-rush");
+    sendMessage("start-morning-rush");
+    console.log("🌅 WebSocket: Emitted start-morning-rush");
+  }, [sendMessage]);
+
+  // Start evening rush hour
+  const startEveningRush = useCallback(() => {
+    console.log("🌆 WebSocket: Starting evening rush hour");
+    console.log(
+      "🌆 WebSocket: Socket connected?",
+      socketRef.current?.connected
+    );
+    console.log("🌆 WebSocket: Socket ID:", socketRef.current?.id);
+    console.log("🌆 WebSocket: About to emit start-evening-rush");
+    sendMessage("start-evening-rush");
+    console.log("🌆 WebSocket: Emitted start-evening-rush");
+  }, [sendMessage]);
+
+  // Test message function
+  const sendTestMessage = useCallback(() => {
+    console.log("🧪 WebSocket: Sending test message");
+    sendMessage("test-message", { test: "data" });
+  }, [sendMessage]);
+
   // Handle auto-request notifications
   const onAutoRequestGenerated = useCallback(
     (callback: (data: { count: number; timestamp: string }) => void) => {
@@ -256,6 +299,9 @@ export const useWebSocket = () => {
     generateRequest,
     generateElevatorRequest,
     testPriorityEscalation,
+    startMorningRush,
+    startEveningRush,
+    sendTestMessage,
     onAutoRequestGenerated,
     onRequestsCompleted,
     onTestRequestCreated,

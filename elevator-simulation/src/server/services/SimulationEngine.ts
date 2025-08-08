@@ -6,6 +6,8 @@
 import { RequestClass } from "../models/Request";
 import { ElevatorClass } from "../models/Elevator";
 import { Scheduler } from "./Scheduler";
+import * as fs from "fs";
+import * as path from "path";
 
 /**
  * Simulation Engine Class
@@ -45,6 +47,92 @@ export class SimulationEngine {
     completionTime: number;
   }> = [];
 
+  // NEW: Rush hour state tracking
+  private isRushHour: boolean = false;
+  private rushHourType: "normal" | "morning" | "evening" = "normal";
+  private simulationHour: number = new Date().getHours(); // Current hour of day
+
+  // NEW: Logging system
+  private logFile: string = "";
+  private logBuffer: string[] = [];
+
+  /**
+   * Log message to both console and file
+   */
+  private log(message: string): void {
+    const now = new Date();
+    const timestamp = now.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    this.logBuffer.push(logMessage);
+  }
+
+  /**
+   * Save logs to file
+   */
+  private saveLogs(): void {
+    if (this.logBuffer.length > 0) {
+      const logsDir = path.join(__dirname, "../../../logs");
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+      }
+
+      const now = new Date();
+      const dateStr = now
+        .toLocaleDateString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+        .replace(/\//g, "-");
+
+      const timeStr = now
+        .toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        })
+        .replace(/:/g, "-");
+
+      this.logFile = path.join(
+        logsDir,
+        `elevator-simulation-${dateStr}-${timeStr}-IST.log`
+      );
+
+      // Add header to log file
+      const header = [
+        "=".repeat(80),
+        "ELEVATOR SIMULATION LOG FILE",
+        `Generated on: ${now.toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        })}`,
+        `Simulation Duration: ${this.currentTime} seconds`,
+        `Total Requests: ${this.totalRequests}`,
+        `Completed Requests: ${this.completedRequests}`,
+        `Rush Hour Mode: ${
+          this.isRushHour ? this.rushHourType.toUpperCase() : "NORMAL"
+        }`,
+        "=".repeat(80),
+        "",
+      ].join("\n");
+
+      fs.writeFileSync(this.logFile, header + this.logBuffer.join("\n"));
+      console.log(`📝 Log file saved: ${this.logFile}`);
+    }
+  }
+
   /**
    * Constructor - Initialize the simulation
    * @param totalFloors - Number of floors in building
@@ -81,7 +169,18 @@ export class SimulationEngine {
    */
   public start(): void {
     this.isRunning = true;
-    console.log("Simulation started");
+    this.log("🎮 ELEVATOR SIMULATION STARTED:");
+    this.log(
+      `   🏢 Building: ${this.totalFloors} floors, ${this.totalElevators} elevators`
+    );
+    this.log(`   ⚡ Speed: ${this.speed}x`);
+    this.log(`   📊 Request Frequency: ${this.requestFrequency}/second`);
+    this.log(`   ⏰ Simulation Time: ${this.simulationHour}:00`);
+    this.log(
+      `   🌅 Rush Hour: ${
+        this.isRushHour ? this.rushHourType.toUpperCase() : "INACTIVE"
+      }`
+    );
   }
 
   /**
@@ -89,7 +188,20 @@ export class SimulationEngine {
    */
   public stop(): void {
     this.isRunning = false;
-    console.log("Simulation stopped");
+    this.log("⏸️ ELEVATOR SIMULATION STOPPED:");
+    this.log(
+      `   📊 Final Stats: ${this.completedRequests}/${this.totalRequests} requests completed`
+    );
+    this.log(`   ⏱️ Average Wait Time: ${this.averageWaitTime.toFixed(1)}s`);
+    this.log(
+      `   🚀 Average Travel Time: ${this.averageTravelTime.toFixed(1)}s`
+    );
+    this.log(
+      `   📈 Elevator Utilization: ${this.elevatorUtilization.toFixed(1)}%`
+    );
+
+    // Save logs to file
+    this.saveLogs();
   }
 
   /**
@@ -117,11 +229,56 @@ export class SimulationEngine {
 
   /**
    * Set simulation speed
-   * @param speed - Speed multiplier (1, 2, 5, 10)
+   * @param speed - Speed multiplier (1x, 2x, 5x, 10x)
    */
   public setSpeed(speed: number): void {
     this.speed = speed;
-    console.log(`Simulation speed set to ${speed}x`);
+    console.log(`Speed set to ${speed}x`);
+  }
+
+  /**
+   * Start morning rush hour simulation
+   * Simulates 8-10 AM with lobby-to-upper-floor bias
+   */
+  public startMorningRush(): void {
+    this.isRushHour = true;
+    this.rushHourType = "morning";
+    this.simulationHour = 9; // 9 AM
+    this.requestFrequency = 2; // Higher frequency during rush hour
+    this.log("🌅 Morning rush hour started - Lobby to upper floors bias");
+    this.log(
+      `   📊 Request frequency increased to ${this.requestFrequency}/second`
+    );
+    this.log(`   ⏰ Simulation time set to ${this.simulationHour}:00`);
+  }
+
+  /**
+   * Start evening rush hour simulation
+   * Simulates 5-7 PM with upper-floor-to-lobby bias
+   */
+  public startEveningRush(): void {
+    this.isRushHour = true;
+    this.rushHourType = "evening";
+    this.simulationHour = 18; // 6 PM
+    this.requestFrequency = 2; // Higher frequency during rush hour
+    this.log("🌆 Evening rush hour started - Upper floors to lobby bias");
+    this.log(
+      `   📊 Request frequency increased to ${this.requestFrequency}/second`
+    );
+    this.log(`   ⏰ Simulation time set to ${this.simulationHour}:00`);
+  }
+
+  /**
+   * End rush hour simulation
+   */
+  public endRushHour(): void {
+    this.isRushHour = false;
+    this.rushHourType = "normal";
+    this.requestFrequency = 1; // Normal frequency
+    this.log("⏰ Rush hour ended - Normal operation resumed");
+    this.log(
+      `   📊 Request frequency reset to ${this.requestFrequency}/second`
+    );
   }
 
   /**
@@ -134,37 +291,87 @@ export class SimulationEngine {
   }
 
   /**
-   * Generate rush hour request with lobby bias
+   * Generate rush hour request with lobby bias (morning rush)
    */
   private generateRushHourRequest(): RequestClass {
-    // 70% chance of request from lobby (floor 1) to upper floors
-    const isFromLobby = Math.random() < 0.7;
-    const fromFloor = isFromLobby
-      ? 1
-      : Math.floor(Math.random() * this.totalFloors) + 1;
+    if (this.rushHourType === "morning") {
+      // Morning rush: 70% chance of request from lobby (floor 1) to upper floors
+      const isFromLobby = Math.random() < 0.7;
+      const fromFloor = isFromLobby
+        ? 1
+        : Math.floor(Math.random() * this.totalFloors) + 1;
 
-    let toFloor: number;
-    if (isFromLobby) {
-      // If from lobby, go to upper floors (2 to totalFloors)
-      toFloor = Math.floor(Math.random() * (this.totalFloors - 1)) + 2;
+      let toFloor: number;
+      if (isFromLobby) {
+        // If from lobby, go to upper floors (2 to totalFloors)
+        toFloor = Math.floor(Math.random() * (this.totalFloors - 1)) + 2;
+        this.log(
+          `🌅 Morning rush: Lobby request (70% chance) - Floor 1 → Floor ${toFloor}`
+        );
+      } else {
+        // Random destination
+        toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+        while (toFloor === fromFloor) {
+          toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+        }
+        this.log(
+          `🌅 Morning rush: Random request (30% chance) - Floor ${fromFloor} → Floor ${toFloor}`
+        );
+      }
+
+      return new RequestClass(fromFloor, toFloor, this.currentTime);
+    } else if (this.rushHourType === "evening") {
+      // Evening rush: 70% chance of request from upper floors to lobby (floor 1)
+      const isToLobby = Math.random() < 0.7;
+      const toFloor = isToLobby
+        ? 1
+        : Math.floor(Math.random() * this.totalFloors) + 1;
+
+      let fromFloor: number;
+      if (isToLobby) {
+        // If going to lobby, start from upper floors (2 to totalFloors)
+        fromFloor = Math.floor(Math.random() * (this.totalFloors - 1)) + 2;
+        this.log(
+          `🌆 Evening rush: Lobby-bound request (70% chance) - Floor ${fromFloor} → Floor 1`
+        );
+      } else {
+        // Random origin
+        fromFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+        while (fromFloor === toFloor) {
+          fromFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+        }
+        this.log(
+          `🌆 Evening rush: Random request (30% chance) - Floor ${fromFloor} → Floor ${toFloor}`
+        );
+      }
+
+      return new RequestClass(fromFloor, toFloor, this.currentTime);
     } else {
-      // Random destination
-      toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+      // Normal random request (shouldn't happen during rush hour)
+      const fromFloor = Math.floor(Math.random() * this.totalFloors) + 1;
+      let toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
       while (toFloor === fromFloor) {
         toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
       }
+      this.log(
+        `⚠️ Normal request during rush hour - Floor ${fromFloor} → Floor ${toFloor}`
+      );
+      return new RequestClass(fromFloor, toFloor, this.currentTime);
     }
-
-    return new RequestClass(fromFloor, toFloor, this.currentTime);
   }
 
   /**
    * Generate a random request with rush hour logic
    */
   private generateRandomRequest(): RequestClass {
-    // Check if it's morning rush hour
-    if (this.isMorningRushHour()) {
-      return this.generateRushHourRequest();
+    // Check if it's rush hour mode
+    if (this.isRushHour) {
+      this.log(`🌅 Rush hour mode detected: ${this.rushHourType}`);
+      const rushRequest = this.generateRushHourRequest();
+      this.log(
+        `🌅 Generated rush hour request: Floor ${rushRequest.fromFloor} → Floor ${rushRequest.toFloor}`
+      );
+      return rushRequest;
     }
 
     // Normal random request generation
@@ -176,6 +383,9 @@ export class SimulationEngine {
       toFloor = Math.floor(Math.random() * this.totalFloors) + 1;
     }
 
+    this.log(
+      `⏰ Normal mode - generated random request: Floor ${fromFloor} → Floor ${toFloor}`
+    );
     return new RequestClass(fromFloor, toFloor, this.currentTime);
   }
 
@@ -190,7 +400,7 @@ export class SimulationEngine {
       this.totalRequests++;
       this.lastRequestTime = this.currentTime;
 
-      console.log(
+      this.log(
         `New request: Floor ${request.fromFloor} → Floor ${request.toFloor}`
       );
     }
@@ -200,6 +410,8 @@ export class SimulationEngine {
    * Process pending requests
    */
   private processRequests(): void {
+    this.log(`📋 Processing ${this.pendingRequests.length} pending requests`);
+
     // Step 1: Sort requests by priority (highest priority first)
     this.sortRequestsByPriority();
 
@@ -212,6 +424,14 @@ export class SimulationEngine {
         continue;
       }
 
+      this.log(
+        `🔍 Processing request ${request.id}: Floor ${
+          request.fromFloor
+        } → Floor ${request.toFloor} (Priority: ${request
+          .getPriority(this.currentTime)
+          .toFixed(2)})`
+      );
+
       // If request already has an assigned elevator (manual assignment),
       // directly assign it without finding the best elevator
       if (request.assignedElevatorId !== undefined) {
@@ -220,14 +440,14 @@ export class SimulationEngine {
         );
         if (assignedElevator) {
           this.scheduler.assignRequest(request, assignedElevator);
-          console.log(
+          this.log(
             `🎛️ Manual request assigned to Elevator ${
               assignedElevator.id
             } (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`
           );
           continue;
         } else {
-          console.log(
+          this.log(
             `⚠️ Assigned elevator ${request.assignedElevatorId} not found, will find best elevator`
           );
         }
@@ -237,6 +457,14 @@ export class SimulationEngine {
       const bestElevator = this.scheduler.findBestElevator(request);
 
       if (bestElevator !== null) {
+        this.log(
+          `🎯 Best elevator found: Elevator ${
+            bestElevator.id
+          } (Distance: ${bestElevator.getDistanceToFloor(
+            request.fromFloor
+          )} floors)`
+        );
+
         // Check if elevator is currently serving a high-priority request
         const currentHighPriorityRequest = this.pendingRequests.find(
           (r) =>
@@ -250,16 +478,20 @@ export class SimulationEngine {
         if (!currentHighPriorityRequest) {
           // Assign request to elevator
           this.scheduler.assignRequest(request, bestElevator);
-          console.log(
-            `Request assigned to Elevator ${
+          this.log(
+            `✅ Request assigned to Elevator ${
               bestElevator.id
             } (Priority: ${request.getPriority(this.currentTime).toFixed(2)})`
           );
         } else {
-          console.log(
+          this.log(
             `⏸️ Skipping request assignment - Elevator ${bestElevator.id} serving high-priority request`
           );
         }
+      } else {
+        this.log(
+          `❌ No suitable elevator found for request Floor ${request.fromFloor} → Floor ${request.toFloor}`
+        );
       }
     }
   }
@@ -269,13 +501,15 @@ export class SimulationEngine {
    * This ensures that requests waiting longer get served first
    */
   private sortRequestsByPriority(): void {
+    this.log(`🔄 Sorting ${this.pendingRequests.length} requests by priority`);
+
     this.pendingRequests.sort((a, b) => {
       // Get priority scores for both requests
       const priorityA = a.getPriority(this.currentTime);
       const priorityB = b.getPriority(this.currentTime);
 
       // Log priority comparison for debugging
-      console.log(
+      this.log(
         `🔍 Priority comparison: Request ${a.id} (${priorityA.toFixed(
           2
         )}) vs Request ${b.id} (${priorityB.toFixed(2)})`
@@ -284,70 +518,113 @@ export class SimulationEngine {
       // Sort in descending order (highest priority first)
       return priorityB - priorityA;
     });
+
+    this.log(
+      `📊 Request priority order: ${this.pendingRequests
+        .map((r) => `${r.id}(${r.getPriority(this.currentTime).toFixed(2)})`)
+        .join(" → ")}`
+    );
   }
 
   /**
-   * Update elevator movements
+   * Update elevator movements and handle requests
    */
   private updateElevators(): void {
     for (const elevator of this.elevators) {
+      // Log elevator status
+      this.log(
+        `🛗 Elevator ${elevator.id} at Floor ${elevator.currentFloor} | Direction: ${elevator.direction} | Passengers: ${elevator.passengerCount}/${elevator.maxCapacity} | Moving: ${elevator.isMoving}`
+      );
+
       // Move elevator if it has a target
-      if (
-        elevator.targetFloor !== undefined &&
-        elevator.currentFloor !== elevator.targetFloor
-      ) {
-        elevator.move();
-        console.log(
-          `🚀 Elevator ${elevator.id} moved to floor ${elevator.currentFloor}`
-        );
-      }
+      if (elevator.targetFloor !== undefined) {
+        if (elevator.hasReachedTarget()) {
+          this.log(
+            `🎯 Elevator ${elevator.id} reached target floor ${elevator.currentFloor}`
+          );
+          elevator.stop();
+          elevator.openDoors();
+          this.log(
+            `🚪 Elevator ${elevator.id} doors opened at floor ${elevator.currentFloor}`
+          );
 
-      // Check if elevator reached its target
-      if (elevator.hasReachedTarget()) {
-        console.log(
-          `🎯 Elevator ${elevator.id} reached target floor ${elevator.currentFloor}`
-        );
+          // Process passengers at this floor
+          this.processPassengers(elevator);
 
-        // Open doors
-        elevator.openDoors();
-
-        // Process passengers (simplified)
-        this.processPassengers(elevator);
-
-        // Close doors
-        elevator.closeDoors();
-
-        // Update elevator targets based on assigned requests
+          // Close doors after processing
+          setTimeout(() => {
+            elevator.closeDoors();
+            this.log(
+              `🚪 Elevator ${elevator.id} doors closed at floor ${elevator.currentFloor}`
+            );
+          }, 1000);
+        } else {
+          elevator.move();
+          this.log(
+            `🚀 Elevator ${elevator.id} moved ${elevator.direction} to floor ${elevator.currentFloor}`
+          );
+        }
+      } else {
+        // Elevator is idle, check for new requests
         this.updateElevatorTargetsForRequests(elevator);
       }
     }
   }
 
   /**
-   * Process passengers getting on/off elevator and complete requests
-   * @param elevator - The elevator to process
+   * Process passengers for an elevator at its current floor
+   * @param elevator - The elevator to process passengers for
    */
   private processPassengers(elevator: ElevatorClass): void {
-    // Simulate some passengers getting off (if elevator has passengers)
-    if (elevator.passengerCount > 0) {
-      const passengersGettingOff =
-        Math.floor(Math.random() * elevator.passengerCount) + 1;
-      if (elevator.removePassengers(passengersGettingOff)) {
-        console.log(
-          `${passengersGettingOff} passengers got off Elevator ${elevator.id}`
-        );
+    this.log(
+      `👥 Processing passengers for Elevator ${elevator.id} at Floor ${elevator.currentFloor}`
+    );
 
-        // Complete requests that were served by this elevator
-        this.completeRequestsForElevator(elevator);
+    // Find requests that need pickup or delivery at this floor
+    const requestsAtFloor = this.pendingRequests.filter(
+      (request) =>
+        request.isAssigned &&
+        request.assignedElevatorId === elevator.id &&
+        ((request.fromFloor === elevator.currentFloor &&
+          !request.isPickupComplete) ||
+          (request.toFloor === elevator.currentFloor &&
+            request.isPickupComplete &&
+            !request.isDeliveryComplete))
+    );
+
+    this.log(
+      `📋 Found ${requestsAtFloor.length} requests to process at Floor ${elevator.currentFloor}`
+    );
+
+    for (const request of requestsAtFloor) {
+      // Pickup passengers
+      if (
+        request.fromFloor === elevator.currentFloor &&
+        !request.isPickupComplete
+      ) {
+        if (elevator.hasCapacity()) {
+          elevator.addPassengers(1);
+          request.isPickupComplete = true;
+          this.log(
+            `✅ Pickup completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} at time ${this.currentTime}`
+          );
+        } else {
+          this.log(
+            `⚠️ Elevator ${elevator.id} at capacity, cannot pickup passenger for request Floor ${request.fromFloor} → Floor ${request.toFloor}`
+          );
+        }
       }
-    }
 
-    // Simulate some passengers getting on (if elevator has capacity)
-    if (elevator.hasCapacity()) {
-      const passengersGettingOn = Math.floor(Math.random() * 2) + 1; // 1-2 passengers
-      if (elevator.addPassengers(passengersGettingOn)) {
-        console.log(
-          `${passengersGettingOn} passengers got on Elevator ${elevator.id}`
+      // Drop off passengers
+      if (
+        request.toFloor === elevator.currentFloor &&
+        request.isPickupComplete &&
+        !request.isDeliveryComplete
+      ) {
+        elevator.removePassengers(1);
+        request.isDeliveryComplete = true;
+        this.log(
+          `✅ Delivery completed for request Floor ${request.fromFloor} → Floor ${request.toFloor} at time ${this.currentTime}`
         );
       }
     }
@@ -614,6 +891,15 @@ export class SimulationEngine {
       maxWaitTime: this.maxWaitTime,
       averageTravelTime: this.averageTravelTime,
       elevatorUtilization: this.elevatorUtilization,
+      // NEW: Rush hour state
+      isRushHour: this.isRushHour,
+      rushHourType:
+        this.rushHourType === "morning"
+          ? "🌅 MORNING RUSH"
+          : this.rushHourType === "evening"
+          ? "🌆 EVENING RUSH"
+          : "⏰ NORMAL HOURS",
+      simulationHour: this.simulationHour,
     };
   }
 

@@ -26,8 +26,8 @@ interface ControlPanelProps {
   onElevatorsChange: (elevators: number) => void;
   onFrequencyChange: (frequency: number) => void;
   onTestPriority: () => void;
-  onTestMorningRush?: () => void;
-  onTestEveningRush?: () => void;
+  onStartMorningRush: () => void;
+  onStartEveningRush: () => void;
 }
 
 /**
@@ -51,8 +51,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onElevatorsChange,
   onFrequencyChange,
   onTestPriority,
-  onTestMorningRush = () => console.log("Morning rush not implemented"),
-  onTestEveningRush = () => console.log("Evening rush not implemented"),
+  onStartMorningRush = () => console.log("Morning rush not implemented"),
+  onStartEveningRush = () => console.log("Evening rush not implemented"),
 }) => {
   // Handle peak traffic scenario
   const handlePeakTraffic = () => {
@@ -136,28 +136,40 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         </button>
 
         <button
-          onClick={onTestMorningRush}
-          disabled={isRunning}
+          onClick={() => {
+            console.log("🌅 Morning Rush button clicked!");
+            onStartMorningRush();
+          }}
+          disabled={
+            isRunning || (isRushHour && rushHourType === "🌆 EVENING RUSH")
+          }
           style={{
             background:
               isRushHour && rushHourType === "🌅 MORNING RUSH"
                 ? "rgba(255, 152, 0, 0.5)"
                 : "rgba(255, 152, 0, 0.3)",
             borderColor: "rgba(255, 152, 0, 0.5)",
+            opacity: isRushHour && rushHourType === "🌆 EVENING RUSH" ? 0.5 : 1,
           }}
         >
           🌅 Morning Rush
         </button>
 
         <button
-          onClick={onTestEveningRush}
-          disabled={isRunning}
+          onClick={() => {
+            console.log("🌆 Evening Rush button clicked!");
+            onStartEveningRush();
+          }}
+          disabled={
+            isRunning || (isRushHour && rushHourType === "🌅 MORNING RUSH")
+          }
           style={{
             background:
               isRushHour && rushHourType === "🌆 EVENING RUSH"
                 ? "rgba(255, 193, 7, 0.5)"
                 : "rgba(255, 193, 7, 0.3)",
             borderColor: "rgba(255, 193, 7, 0.5)",
+            opacity: isRushHour && rushHourType === "🌅 MORNING RUSH" ? 0.5 : 1,
           }}
         >
           🌆 Evening Rush
