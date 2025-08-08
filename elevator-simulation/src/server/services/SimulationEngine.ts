@@ -87,28 +87,39 @@ export class SimulationEngine {
       }
 
       const now = new Date();
-      const dateStr = now
-        .toLocaleDateString("en-IN", {
-          timeZone: "Asia/Kolkata",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        })
-        .replace(/\//g, "-");
 
-      const timeStr = now
-        .toLocaleTimeString("en-IN", {
-          timeZone: "Asia/Kolkata",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        })
-        .replace(/:/g, "-");
+      // Create human-readable date format: 8_Aug_2025
+      const day = now.getDate();
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear();
+
+      // Create human-readable time format: 4-20-35-PM-IST
+      const hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const seconds = now.getSeconds().toString().padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const displayHours = hours % 12 || 12;
+
+      const dateStr = `${day}_${month}_${year}`;
+      const timeStr = `${displayHours}-${minutes}-${seconds}-${ampm}-IST`;
 
       this.logFile = path.join(
         logsDir,
-        `elevator-simulation-${dateStr}-${timeStr}-IST.log`
+        `elevator-simulation-${dateStr}_(${timeStr}).log`
       );
 
       // Add header to log file
