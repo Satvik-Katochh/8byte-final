@@ -40,15 +40,19 @@ export class ElevatorClass implements Elevator {
   }
 
   /**
-   * Move the elevator one floor in its current direction
+   * Move the elevator multiple floors in its current direction (optimized for efficiency)
    */
   public move(): void {
     if (this.direction === "up") {
-      // Don't go beyond the top floor (5 for now)
-      this.currentFloor = Math.min(this.currentFloor + 1, 5);
+      // Move up by 10 floors, but don't overshoot the target
+      const targetFloor = this.targetFloor || 50;
+      const newFloor = Math.min(this.currentFloor + 10, targetFloor);
+      this.currentFloor = Math.min(newFloor, 50);
     } else if (this.direction === "down") {
-      // Don't go below the ground floor
-      this.currentFloor = Math.max(this.currentFloor - 1, 1);
+      // Move down by 10 floors, but don't overshoot the target
+      const targetFloor = this.targetFloor || 1;
+      const newFloor = Math.max(this.currentFloor - 10, targetFloor);
+      this.currentFloor = Math.max(newFloor, 1);
     }
 
     this.isMoving = true;
@@ -64,7 +68,7 @@ export class ElevatorClass implements Elevator {
   }
 
   /**
-   * Set the elevator's target floor and direction
+   * Set the elevator's target floor and direction with optimized logic
    * @param targetFloor - Floor to go to
    */
   public setTarget(targetFloor: number): void {

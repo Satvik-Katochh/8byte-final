@@ -64,10 +64,20 @@ export class RequestClass implements Request {
     // Base priority is 1
     let priority = 1;
 
-    // If waiting more than 30 seconds, increase priority
-    if (waitTime > 30) {
-      // Priority increases exponentially after 30 seconds
-      priority += Math.pow(waitTime - 30, 1.5);
+    // Balanced escalation for better completion rates
+    if (waitTime > 8) {
+      // Start escalating after 8 seconds (increased from 5)
+      priority += Math.pow(waitTime - 8, 1.2); // Reduced exponent from 1.5
+    }
+
+    // Emergency boost for very old requests
+    if (waitTime > 25) {
+      priority += 200; // Reduced from 300
+    }
+
+    // Super emergency for extremely old requests
+    if (waitTime > 40) {
+      priority += 500; // Reduced from 1000
     }
 
     return priority;

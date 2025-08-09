@@ -11,6 +11,8 @@ import ElevatorDisplay from "./components/ElevatorDisplay";
 import ControlPanel from "./components/ControlPanel";
 import StatisticsPanel from "./components/StatisticsPanel";
 import RequestLog from "./components/RequestLog";
+import StressPanel from "./components/StressPanel";
+import { StressTestScenario } from "./components/StressPanel";
 
 // Import our WebSocket hook
 import { useWebSocket } from "./hooks/useWebSocket";
@@ -375,6 +377,56 @@ function App() {
     generateElevatorRequest(elevatorId, fromFloor, toFloor);
   };
 
+  // Stress test handlers
+  const handleStartStressTest = async (scenario: StressTestScenario) => {
+    console.log(`🧪 Starting stress test: ${scenario.name}`);
+    
+    if (!isConnected) {
+      console.error("🧪 WebSocket not connected for stress test");
+      return;
+    }
+    
+    // Update simulation parameters based on scenario
+    setTotalFloors(scenario.totalFloors);
+    setTotalElevators(scenario.totalElevators);
+    setRequestFrequency(scenario.requestFrequency);
+    
+    // Reset simulation with new parameters
+    console.log(`🧪 Resetting simulation with scenario: ${scenario.name}`);
+    resetSimulation({
+      totalFloors: scenario.totalFloors,
+      totalElevators: scenario.totalElevators,
+      requestFrequency: scenario.requestFrequency,
+    });
+    
+    // Wait for reset to complete, then start simulation
+    setTimeout(() => {
+      console.log(`🧪 Starting simulation for stress test: ${scenario.name}`);
+      setIsRunning(true);
+      startSimulation();
+    }, 1000); // Wait 1 second for reset to complete
+  };
+
+  const handleStopStressTest = () => {
+    console.log("🧪 Stopping stress test");
+    if (isConnected) {
+      setIsRunning(false);
+      stopSimulation();
+    }
+  };
+
+  const handleResetStressTest = () => {
+    console.log("🧪 Resetting stress test");
+    if (isConnected) {
+      setIsRunning(false);
+      resetSimulation({
+        totalFloors,
+        totalElevators,
+        requestFrequency,
+      });
+    }
+  };
+
   // Initialize simulation when component mounts
   useEffect(() => {
     console.log(
@@ -467,6 +519,21 @@ function App() {
 
         {/* Request Log - Above Quick Test Guide */}
         <RequestLog requestLog={requestLog} />
+
+        {/* Stress Panel - Stress testing scenarios */}
+        <StressPanel
+          isRunning={isRunning}
+          currentTime={simulationState.currentTime}
+          totalRequests={simulationState.totalRequests}
+          completedRequests={simulationState.completedRequests}
+          averageWaitTime={simulationState.averageWaitTime}
+          maxWaitTime={simulationState.maxWaitTime}
+          averageTravelTime={simulationState.averageTravelTime}
+          elevatorUtilization={simulationState.elevatorUtilization}
+          onStartStressTest={handleStartStressTest}
+          onStopStressTest={handleStopStressTest}
+          onResetStressTest={handleResetStressTest}
+        />
 
         {/* Simple Instructions */}
         <div
