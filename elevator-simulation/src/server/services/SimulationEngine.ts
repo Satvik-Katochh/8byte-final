@@ -418,19 +418,20 @@ export class SimulationEngine {
   }
 
   /**
-   * Process pending requests with predictive positioning and emergency rebalancing
+   * Process pending requests with HYBRID AGGRESSIVE strategy
    */
   private processRequests(): void {
     this.log(`📋 Processing ${this.pendingRequests.length} pending requests`);
 
-    // Step 1: Emergency rebalancing - only if load imbalance is too high (increased threshold)
+    // Step 1: Emergency rebalancing - only if load imbalance is too high (ultra-aggressive threshold)
     this.emergencyRebalancing();
 
     // Step 2: Predictive positioning - move idle elevators to high-traffic areas
     this.predictivePositioning();
 
-    // Step 3: Sort requests by priority (highest priority first) - only if many requests
-    if (this.pendingRequests.length > 8) {
+    // Step 3: Sort requests by priority (highest priority first) - ultra-frequent sorting
+    if (this.pendingRequests.length > 3) {
+      // Ultra-reduced threshold for more frequent sorting
       this.sortRequestsByPriority();
     }
 
@@ -455,7 +456,7 @@ export class SimulationEngine {
         }
       }
 
-      // Find best elevator for this request using the optimized scheduler
+      // Find best elevator for this request using the hybrid aggressive scheduler
       this.scheduler.setPendingRequests(this.pendingRequests);
       const bestElevator = this.scheduler.findBestElevator(
         request,
@@ -491,8 +492,9 @@ export class SimulationEngine {
     const minLoad = Math.min(...loads);
     const loadDifference = maxLoad - minLoad;
 
-    // Increased threshold for rebalancing to reduce unnecessary reassignments
-    if (loadDifference > 8) {
+    // Ultra-reduced threshold for rebalancing to improve completion rate
+    if (loadDifference > 3) {
+      // Ultra-reduced threshold for more aggressive rebalancing
       this.log(
         `🚨 EMERGENCY REBALANCING: Load difference ${loadDifference} (E1=${loads[0]} E2=${loads[1]})`
       );
@@ -506,7 +508,7 @@ export class SimulationEngine {
 
       if (overloadedElevator && underloadedElevator) {
         // Move some requests from overloaded to underloaded elevator
-        const requestsToMove = Math.floor(loadDifference / 3); // Reduced from /2
+        const requestsToMove = Math.floor(loadDifference / 1.5); // Ultra-aggressive reassignment
         const requests = overloadedElevator.assignedRequests.slice(
           0,
           requestsToMove
@@ -545,8 +547,9 @@ export class SimulationEngine {
         const highTrafficFloor = this.getHighTrafficFloor();
         if (
           highTrafficFloor &&
-          Math.abs(elevator.currentFloor - highTrafficFloor) > 5 // Increased threshold
+          Math.abs(elevator.currentFloor - highTrafficFloor) > 2
         ) {
+          // Ultra-reduced threshold for more aggressive positioning
           elevator.setTarget(highTrafficFloor);
           this.log(
             `🎯 Predictive positioning: Elevator ${elevator.id} moving to high-traffic floor ${highTrafficFloor}`
@@ -567,7 +570,7 @@ export class SimulationEngine {
       if (!request.isAssigned) {
         // Count origin floors with higher weight
         const originCount = floorCounts.get(request.fromFloor) || 0;
-        floorCounts.set(request.fromFloor, originCount + 2); // Higher weight for origin floors
+        floorCounts.set(request.fromFloor, originCount + 3); // Increased weight for origin floors
 
         // Count destination floors with lower weight
         const destCount = floorCounts.get(request.toFloor) || 0;
@@ -586,8 +589,8 @@ export class SimulationEngine {
       }
     }
 
-    // Only return high-traffic floor if there are enough requests
-    return maxCount >= 2 ? maxFloor : null;
+    // Ultra-reduced threshold for more aggressive predictive positioning
+    return maxCount >= 1 ? maxFloor : null; // Ultra-reduced threshold
   }
 
   /**

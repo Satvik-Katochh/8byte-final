@@ -1,7 +1,8 @@
 /**
- * OPTIMIZED Elevator Scheduler
+ * HYBRID AGGRESSIVE Elevator Scheduler - BREAK 60% BARRIER
  *
- * ENHANCED REQUIREMENTS:
+ * ULTIMATE GOAL: MAXIMIZE COMPLETED REQUESTS (TARGET: 60%+)
+ * STRATEGY: Combine multiple approaches for maximum effectiveness
  * 1. Minimizes average wait time (time between floor request and pickup)
  * 2. Prevents request starvation (no request waits indefinitely)
  * 3. Balances elevator utilization (no overcrowding)
@@ -9,8 +10,8 @@
  *    - Escalate priority for requests waiting > 30 seconds
  *    - Prioritize lobby-to-upper-floor requests during morning rush hour
  *    - Keep elevators near high-traffic floors during predictable peaks
- * 5. NEW: Optimize for batch processing and route efficiency
- * 6. NEW: Smart load balancing that considers elevator direction and current path
+ * 5. NEW: HYBRID strategy - combine distance, load, and efficiency
+ * 6. NEW: Ultra-aggressive load balancing that considers elevator direction and current path
  */
 
 import { RequestClass } from "../models/Request";
@@ -36,7 +37,7 @@ export class Scheduler {
   }
 
   /**
-   * Find the best elevator using OPTIMIZED algorithm
+   * Find the best elevator using HYBRID AGGRESSIVE algorithm
    * @param request - The request to assign
    * @param pendingRequests - All pending requests (for optimization)
    * @returns The best elevator or null if none available
@@ -54,10 +55,10 @@ export class Scheduler {
 
     if (availableElevators.length === 0) return null;
 
-    // OPTIMIZED SCORING: Consider route efficiency, direction matching, and smart load balancing
+    // HYBRID AGGRESSIVE SCORING: Combine multiple strategies for maximum effectiveness
     const elevatorScores: ElevatorScore[] = availableElevators
       .map((elevator) =>
-        this.calculateOptimizedScore(elevator, request, pendingRequests)
+        this.calculateHybridAggressiveScore(elevator, request, pendingRequests)
       )
       .sort((a, b) => b.score - a.score);
 
@@ -68,13 +69,13 @@ export class Scheduler {
   }
 
   /**
-   * Calculate OPTIMIZED score based on enhanced requirements
+   * Calculate HYBRID AGGRESSIVE score based on multiple strategies
    * @param elevator - The elevator to score
    * @param request - The request to consider
    * @param pendingRequests - All pending requests for context
    * @returns Score object with breakdown
    */
-  private calculateOptimizedScore(
+  private calculateHybridAggressiveScore(
     elevator: ElevatorClass,
     request: RequestClass,
     pendingRequests: RequestClass[]
@@ -103,28 +104,42 @@ export class Scheduler {
     // NEW REQUIREMENT 6: User experience bonuses
     const userExperienceBonus = this.calculateUserExperienceBonus(request);
 
-    // OPTIMIZED SCORING FORMULA:
-    // 1. Distance (15%) - closer is better
-    // 2. Load balancing (25%) - less loaded is better (reduced from 70%)
-    // 3. Route efficiency (30%) - how well request fits current path (NEW)
-    // 4. Direction matching (20%) - prefer elevators going in right direction (NEW)
-    // 5. Priority (7%) - higher priority is better
-    // 6. User experience (3%) - special cases
+    // HYBRID AGGRESSIVE SCORING FORMULA - MULTIPLE STRATEGIES:
+    // 1. Distance (35%) - closer is better (PRIMARY)
+    // 2. Load balancing (20%) - less loaded is better (BALANCED)
+    // 3. Route efficiency (25%) - how well request fits current path
+    // 4. Direction matching (15%) - prefer elevators going in right direction
+    // 5. Priority (3%) - higher priority is better
+    // 6. User experience (2%) - special cases
 
-    const distanceScore = Math.max(0, 100 - distance * 1.5); // Reduced penalty
-    const loadScore = Math.max(0, 100 - totalLoad * 50); // Reduced penalty for better balance
-    const routeScore = routeEfficiency * 100; // Route efficiency score
-    const directionScore = directionMatch * 100; // Direction matching score
-    const priorityScore = Math.min(100, requestPriority * 2); // Scaled priority
+    // HYBRID DISTANCE SCORING - Multiple distance factors
+    const directDistance = Math.max(0, 100 - distance * 0.6); // Reduced penalty
+    const loadAdjustedDistance = directDistance * (1 - totalLoad * 0.1); // Adjust for load
+    const distanceScore = Math.max(0, loadAdjustedDistance);
+
+    // HYBRID LOAD SCORING - Consider both current and potential load
+    const loadScore = Math.max(0, 100 - totalLoad * 25); // Reduced penalty
+
+    // HYBRID ROUTE SCORING - Enhanced route efficiency
+    const routeScore = routeEfficiency * 100;
+
+    // HYBRID DIRECTION SCORING - Enhanced direction matching
+    const directionScore = directionMatch * 100;
+
+    // HYBRID PRIORITY SCORING - Enhanced priority handling
+    const priorityScore = Math.min(100, requestPriority * 1.5);
+
+    // HYBRID EXPERIENCE SCORING - Enhanced user experience
     const experienceScore = userExperienceBonus;
 
+    // FINAL HYBRID SCORE - Weighted combination
     const totalScore =
-      distanceScore * 0.15 +
-      loadScore * 0.25 +
-      routeScore * 0.3 +
-      directionScore * 0.2 +
-      priorityScore * 0.07 +
-      experienceScore * 0.03;
+      distanceScore * 0.35 +
+      loadScore * 0.2 +
+      routeScore * 0.25 +
+      directionScore * 0.15 +
+      priorityScore * 0.03 +
+      experienceScore * 0.02;
 
     return {
       elevator,
@@ -181,7 +196,7 @@ export class Scheduler {
     if (fromFloorInPath && toFloorInPath) {
       return 1.0; // Perfect fit - both floors already in path
     } else if (fromFloorInPath || toFloorInPath) {
-      return 0.7; // Good fit - one floor in path
+      return 0.95; // Excellent fit - one floor in path (INCREASED)
     } else {
       // Calculate how much the request would add to the route
       const currentFloors = Array.from(floorsToVisit);
@@ -190,8 +205,8 @@ export class Scheduler {
       const newRouteLength = this.calculateRouteLength(newFloors);
       const routeIncrease = newRouteLength - currentRouteLength;
 
-      // Efficiency decreases as route increase gets larger
-      return Math.max(0, 1 - routeIncrease / (this.totalFloors * 2));
+      // Efficiency decreases as route increase gets larger (but less aggressively)
+      return Math.max(0, 1 - routeIncrease / (this.totalFloors * 3.5)); // Reduced penalty
     }
   }
 
@@ -224,7 +239,7 @@ export class Scheduler {
     request: RequestClass
   ): number {
     if (elevator.direction === "idle") {
-      return 0.5; // Neutral score for idle elevators
+      return 0.8; // Increased score for idle elevators (HYBRID)
     }
 
     const requestDirection =
@@ -233,7 +248,7 @@ export class Scheduler {
     if (elevator.direction === requestDirection) {
       return 1.0; // Perfect match
     } else {
-      return 0.2; // Poor match
+      return 0.5; // Increased score for poor match (HYBRID)
     }
   }
 
@@ -246,11 +261,11 @@ export class Scheduler {
     // REQUIREMENT: Escalate priority for requests waiting > 30 seconds
     const waitTime = request.getWaitTime(Date.now());
     if (waitTime > 30) {
-      bonus += 150; // Reduced from 200 for better balance
+      bonus += 400; // Increased bonus for old requests (HYBRID)
     } else if (waitTime > 20) {
-      bonus += 75; // Reduced from 100
+      bonus += 200; // Increased bonus for older requests
     } else if (waitTime > 10) {
-      bonus += 25; // Reduced from 50
+      bonus += 100; // Increased bonus for older requests
     }
 
     // REQUIREMENT: Prioritize lobby-to-upper-floor requests during morning rush hour
@@ -259,12 +274,12 @@ export class Scheduler {
       request.fromFloor === 1 &&
       request.toFloor > 1
     ) {
-      bonus += 50; // Reduced from 100
+      bonus += 150; // Increased bonus
     }
 
     // REQUIREMENT: Keep elevators near high-traffic floors during predictable peaks
     if (this.isHighTrafficFloor(request.fromFloor)) {
-      bonus += 25; // Reduced from 50
+      bonus += 80; // Increased bonus
     }
 
     return bonus;
@@ -299,7 +314,7 @@ export class Scheduler {
   }
 
   /**
-   * Update elevator target based on assigned requests with OPTIMIZED logic
+   * Update elevator target based on assigned requests with HYBRID AGGRESSIVE logic
    */
   private updateElevatorTarget(elevator: ElevatorClass): void {
     const assignedRequests = this.getAssignedRequests(elevator);
@@ -312,7 +327,8 @@ export class Scheduler {
       const priorityB = b.getPriority(Date.now());
 
       // If priorities are close, prefer requests that fit the current route better
-      if (Math.abs(priorityA - priorityB) < 10) {
+      if (Math.abs(priorityA - priorityB) < 25) {
+        // Increased threshold for HYBRID approach
         const routeEfficiencyA = this.calculateRouteEfficiency(
           elevator,
           a,
@@ -332,7 +348,7 @@ export class Scheduler {
     const nextRequest = sortedRequests[0];
     if (!nextRequest) return;
 
-    // OPTIMIZED targeting logic:
+    // HYBRID AGGRESSIVE targeting logic:
     // 1. If pickup not complete, go to pickup floor
     // 2. If pickup complete, go to destination floor
     // 3. Consider route efficiency when choosing between multiple requests

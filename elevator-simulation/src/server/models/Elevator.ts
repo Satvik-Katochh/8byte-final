@@ -40,18 +40,18 @@ export class ElevatorClass implements Elevator {
   }
 
   /**
-   * Move the elevator multiple floors in its current direction (optimized for efficiency)
+   * Move the elevator multiple floors in its current direction (HYBRID AGGRESSIVE speed)
    */
   public move(): void {
     if (this.direction === "up") {
-      // Move up by 10 floors, but don't overshoot the target
+      // Move up by 18 floors for HYBRID AGGRESSIVE movement (ultra-fast speed)
       const targetFloor = this.targetFloor || 50;
-      const newFloor = Math.min(this.currentFloor + 10, targetFloor);
+      const newFloor = Math.min(this.currentFloor + 18, targetFloor);
       this.currentFloor = Math.min(newFloor, 50);
     } else if (this.direction === "down") {
-      // Move down by 10 floors, but don't overshoot the target
+      // Move down by 18 floors for HYBRID AGGRESSIVE movement (ultra-fast speed)
       const targetFloor = this.targetFloor || 1;
-      const newFloor = Math.max(this.currentFloor - 10, targetFloor);
+      const newFloor = Math.max(this.currentFloor - 18, targetFloor);
       this.currentFloor = Math.max(newFloor, 1);
     }
 

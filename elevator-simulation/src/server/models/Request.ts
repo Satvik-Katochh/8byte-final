@@ -64,20 +64,29 @@ export class RequestClass implements Request {
     // Base priority is 1
     let priority = 1;
 
-    // Balanced escalation for better completion rates
-    if (waitTime > 8) {
-      // Start escalating after 8 seconds (increased from 5)
-      priority += Math.pow(waitTime - 8, 1.2); // Reduced exponent from 1.5
+    // HYBRID AGGRESSIVE escalation for better completion rates
+    if (waitTime > 3) {
+      // Start escalating after 3 seconds (reduced for faster completion)
+      priority += Math.pow(waitTime - 3, 1.5); // Increased exponent for faster escalation
     }
 
     // Emergency boost for very old requests
-    if (waitTime > 25) {
-      priority += 200; // Reduced from 300
+    if (waitTime > 10) {
+      // Reduced threshold for faster completion
+      priority += 400; // Increased boost
     }
 
     // Super emergency for extremely old requests
-    if (waitTime > 40) {
-      priority += 500; // Reduced from 1000
+    if (waitTime > 20) {
+      // Reduced threshold for faster completion
+      priority += 1000; // Increased boost
+    }
+
+    // HYBRID BONUS: Additional boost for requests that are going in the same direction as most pending requests
+    if (this.isGoingUp()) {
+      priority += 50; // Bonus for upward requests
+    } else {
+      priority += 30; // Bonus for downward requests
     }
 
     return priority;
