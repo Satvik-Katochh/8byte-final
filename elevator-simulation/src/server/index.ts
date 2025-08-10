@@ -18,6 +18,12 @@ import { SimulationEngine } from "./services/SimulationEngine";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Handle Railway environment
+const isRailway = process.env.RAILWAY_ENVIRONMENT === "production";
+const clientUrl = isRailway
+  ? process.env.RAILWAY_PUBLIC_DOMAIN || "http://localhost:3000"
+  : process.env.CLIENT_URL || "http://localhost:3000";
+
 // Security and performance middleware
 app.use(helmet());
 app.use(compression());
@@ -25,7 +31,7 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://yourdomain.com"]
+        ? [clientUrl]
         : ["http://localhost:3000"],
     credentials: true,
   })
@@ -44,7 +50,7 @@ const io = new Server(server, {
   cors: {
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://yourdomain.com"]
+        ? [clientUrl]
         : ["http://localhost:3000"],
     credentials: true,
   },
