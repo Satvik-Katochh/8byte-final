@@ -57,7 +57,7 @@ function App() {
       type: "manual" | "auto";
       fromFloor: number;
       toFloor: number;
-      timestamp: string;
+      timestamp: number;
       status: "pending" | "completed";
       priority?: number; // Priority score for pending requests
       assignedElevatorId?: number; // For manual elevator requests
@@ -69,13 +69,12 @@ function App() {
 
   /**
    * Calculate priority for a request based on wait time
-   * @param timestamp - When the request was created
+   * @param timestamp - When the request was created (number)
    * @returns Priority score (higher = more urgent)
    */
-  const calculatePriority = (timestamp: string): number => {
-    const requestTime = new Date(timestamp).getTime();
+  const calculatePriority = (timestamp: number): number => {
     const currentTime = Date.now();
-    const waitTime = (currentTime - requestTime) / 1000; // Convert to seconds
+    const waitTime = (currentTime - timestamp) / 1000; // Convert to seconds
 
     // Base priority is 1
     let priority = 1;
@@ -122,7 +121,7 @@ function App() {
             type: "auto" as const,
             fromFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
             toFloor: Math.floor(Math.random() * totalFloors) + 1, // Random for demo
-            timestamp: data.timestamp,
+            timestamp: new Date(data.timestamp).getTime(),
             status: "pending" as const,
           };
 
@@ -175,7 +174,7 @@ function App() {
                 updated[index] = {
                   ...updated[index],
                   status: "completed" as const,
-                };
+                } as typeof updated[0];
                 completedCount++;
                 console.log(`✅ UI: Marked request ${request.id} as completed`);
               }
@@ -190,7 +189,7 @@ function App() {
                 updated[index] = {
                   ...updated[index],
                   status: "completed" as const,
-                };
+                } as typeof updated[0];
                 completedCount++;
                 console.log(
                   `✅ UI: Marked auto request ${request.id} as completed`
@@ -226,7 +225,7 @@ function App() {
           type: "manual" as const,
           fromFloor: data.fromFloor,
           toFloor: data.toFloor,
-          timestamp: data.timestamp,
+          timestamp: new Date(data.timestamp).getTime(),
           status: "pending" as const,
           priority: data.priority,
         };
@@ -338,7 +337,7 @@ function App() {
       type: "manual" as const,
       fromFloor,
       toFloor,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().getTime(),
       status: "pending" as const,
     };
 
@@ -366,7 +365,7 @@ function App() {
       type: "manual" as const,
       fromFloor,
       toFloor,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().getTime(),
       status: "pending" as const,
       assignedElevatorId: elevatorId,
     };
@@ -519,7 +518,12 @@ function App() {
         </div>
 
         {/* Request Log - Above Quick Test Guide */}
-        <RequestLog requestLog={requestLog} />
+        <RequestLog
+          requestLog={requestLog.map(req => ({
+            ...req,
+            timestamp: new Date(req.timestamp).toLocaleTimeString()
+          }))}
+        />
 
         {/* Stress Panel - Stress testing scenarios */}
         <StressPanel
