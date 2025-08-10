@@ -102,6 +102,16 @@ npm run build        # Build both server and client
 npm start           # Start production server
 ```
 
+### Railway Deployment
+
+```bash
+# Push to Railway (automatic deployment)
+git push origin main
+
+# Or deploy manually
+railway up
+```
+
 ## 📊 Test Scenarios
 
 ### Scenario 1: Basic Operation
@@ -133,9 +143,11 @@ CLIENT_URL=http://localhost:3000
 
 ### Railway Deployment
 
-- Automatic build and deployment
+- Automatic build and deployment using `.nixpacks`
 - WebSocket support enabled
 - Environment variable configuration in dashboard
+- Health check endpoint at `/health`
+- See `RAILWAY_DEPLOYMENT.md` for detailed deployment guide
 
 ## 📈 Performance
 

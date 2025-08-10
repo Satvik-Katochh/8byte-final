@@ -3,7 +3,6 @@
 .env.local
 .env.development
 node_modules/
-dist/
 *.log
 
 # Note: Let Railway auto-detect everything else

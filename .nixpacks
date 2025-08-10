@@ -1,0 +1,18 @@
+[phases.setup]
+nixPkgs = ["nodejs", "npm"]
+
+[phases.install]
+cmds = [
+  "npm ci",
+  "cd src/client && npm ci"
+]
+
+[phases.build]
+cmds = [
+  "npm run build:server",
+  "cd src/client && npm run build",
+  "npm run verify-build"
+]
+
+[start]
+cmd = "npm run start:railway"
