@@ -63,7 +63,12 @@ export const useWebSocket = () => {
 
     try {
       // Create Socket.IO connection to backend
-      const socket = io("http://localhost:8080");
+      const serverUrl =
+        process.env.REACT_APP_SERVER_URL ||
+        (window.location.hostname === "localhost"
+          ? "http://localhost:8080"
+          : window.location.origin);
+      const socket = io(serverUrl);
 
       socket.on("connect", () => {
         console.log("🔌 Socket.IO connected");
