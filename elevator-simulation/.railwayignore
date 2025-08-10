@@ -3,6 +3,7 @@ Dockerfile
 .dockerignore
 docker-compose.yml
 docker-compose.yaml
+Dockerfile.*
 
 # Ignore development files
 .env
@@ -11,3 +12,6 @@ docker-compose.yaml
 node_modules/
 dist/
 *.log
+
+# Force NIXPACKS
+railway.json
