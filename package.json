@@ -9,7 +9,7 @@
     "dev:client": "cd src/client && npm start",
     "build": "npm run build:server && npm run build:client",
     "build:server": "tsc -p tsconfig.server.json",
-    "build:client": "cd src/client && npm run build",
+    "build:client": "cd src/client && npm install && npm run build",
     "start": "node dist/server/index.js",
     "postinstall": "npm run build",
     "railway:build": "npm install && cd src/client && npm install && cd ../.. && npm run build",
