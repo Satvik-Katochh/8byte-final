@@ -13,5 +13,4 @@ node_modules/
 dist/
 *.log
 
-# Force NIXPACKS
-railway.json
+# Note: railway.json should NOT be ignored
