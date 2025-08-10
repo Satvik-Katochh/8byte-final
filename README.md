@@ -110,7 +110,7 @@ This project is **production-ready** and deployed on Railway. The deployment inc
 
 ### Live Demo
 
-**🚀 [Deployed on Railway](https://your-app.railway.app)**
+**🚀 [Deployed on Railway](https://8byte-final-production.up.railway.app/)**
 
 The Railway deployment automatically:
 
