@@ -39,7 +39,7 @@ app.use(
 
 // Serve static files (for production)
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../../client/build")));
+  app.use(express.static(path.join(__dirname, "../client")));
 }
 
 // Create HTTP server
@@ -371,6 +371,13 @@ app.get("/health", (req, res) => {
     simulation: simulationEngine ? "running" : "stopped",
   });
 });
+
+// Catch-all route for React app (must be last)
+if (process.env.NODE_ENV === "production") {
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/index.html"));
+  });
+}
 
 // Start server
 server.listen(PORT, () => {
