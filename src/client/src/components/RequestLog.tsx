@@ -40,7 +40,7 @@ const RequestLog: React.FC<RequestLogProps> = ({ requestLog }) => {
         // If timestamp is invalid, try to parse it as a time string
         const timeMatch = timestamp.match(/(\d{1,2}):(\d{2}):(\d{2})/);
         if (timeMatch) {
-          const [_, hours, minutes, seconds] = timeMatch;
+          const [, hours, minutes, seconds] = timeMatch;
           return `${hours}:${minutes}:${seconds}`;
         }
         return "Invalid Time";

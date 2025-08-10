@@ -449,6 +449,7 @@ function App() {
     totalFloors,
     totalElevators,
     requestFrequency,
+    simulationState,
   ]);
 
   return (

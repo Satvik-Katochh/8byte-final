@@ -289,7 +289,7 @@ export const useWebSocket = () => {
     return () => {
       disconnect();
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, [connect, disconnect]); // Include connect and disconnect in dependencies
 
   return {
     isConnected,

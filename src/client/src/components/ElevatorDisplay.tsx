@@ -58,11 +58,6 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
   // Create array of floors (from top to bottom)
   const floors = Array.from({ length: totalFloors }, (_, i) => totalFloors - i);
 
-  // Get elevator at a specific floor
-  const getElevatorsAtFloor = (floor: number): Elevator[] => {
-    return elevators.filter((elevator) => elevator.currentFloor === floor);
-  };
-
   // Get direction arrow
   const getDirectionArrow = (direction: string): string => {
     switch (direction) {
@@ -70,8 +65,10 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
         return "⬆️";
       case "down":
         return "⬇️";
-      default:
+      case "idle":
         return "⏸️";
+      default:
+        return "❓";
     }
   };
 
@@ -160,8 +157,6 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
         {/* Floor numbers and elevators */}
         <div className="building">
           {floors.map((floor) => {
-            const elevatorsAtFloor = getElevatorsAtFloor(floor);
-
             return (
               <div key={floor} className="floor-row">
                 {/* Floor number */}
@@ -211,7 +206,6 @@ const ElevatorDisplay: React.FC<ElevatorDisplayProps> = ({
                 {/* Individual elevator buttons for this floor */}
                 <div className="elevator-buttons">
                   {Array.from({ length: totalElevators }, (_, i) => {
-                    const elevator = elevators.find((e) => e.id === i + 1);
                     return (
                       <div key={i} className="elevator-button-group">
                         <button
