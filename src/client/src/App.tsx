@@ -3,7 +3,7 @@
  * This component manages the overall application state and layout
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "./App.css";
 
 // Import our components
@@ -90,7 +90,7 @@ function App() {
   };
 
   // Use WebSocket state or fallback to local state
-  const simulationState = wsSimulationState || {
+  const simulationState = useMemo(() => wsSimulationState || {
     currentTime: 0,
     elevators: [],
     pendingRequests: 0,
@@ -104,7 +104,7 @@ function App() {
     isRushHour: false,
     rushHourType: "⏰ NORMAL HOURS",
     simulationHour: 9,
-  };
+  }, [wsSimulationState]);
 
   // Handle auto-request notifications
   useEffect(() => {
