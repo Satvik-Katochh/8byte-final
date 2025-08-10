@@ -83,6 +83,7 @@ const StressPanel: React.FC<StressPanelProps> = ({
   const [isStressTestRunning, setIsStressTestRunning] = useState(false);
   const [stressTestProgress, setStressTestProgress] = useState(0);
   const [stressTestStartTime, setStressTestStartTime] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   // Predefined stress test scenarios based on requirements - SHORT DURATION FOR EVALUATION
   const stressTestScenarios: StressTestScenario[] = [
@@ -153,8 +154,9 @@ const StressPanel: React.FC<StressPanelProps> = ({
     console.log(`🧪 Starting stress test: ${scenario.name}`);
     setActiveScenario(scenario);
     setIsStressTestRunning(true);
-    setStressTestStartTime(currentTime);
+    setStressTestStartTime(Date.now()); // Use actual timestamp for this test
     setStressTestProgress(0);
+    setElapsedTime(0); // Reset elapsed time for new test
     onStartStressTest(scenario);
   };
 
@@ -164,10 +166,26 @@ const StressPanel: React.FC<StressPanelProps> = ({
   const handleStopStressTest = useCallback(() => {
     console.log("🧪 Stopping stress test");
     setIsStressTestRunning(false);
+    setElapsedTime(0); // Reset elapsed time
     onStopStressTest();
 
     // Save results if we have an active scenario
     if (activeScenario) {
+      const successThreshold = totalRequests * 0.6;
+      const success = completedRequests >= successThreshold;
+
+      console.log(`🧪 Test Results for ${activeScenario.name}:`);
+      console.log(
+        `   Completed: ${completedRequests}/${totalRequests} (${(
+          (completedRequests / totalRequests) *
+          100
+        ).toFixed(1)}%)`
+      );
+      console.log(
+        `   Target (60%): ${Math.ceil(successThreshold)}/${totalRequests}`
+      );
+      console.log(`   Success: ${success ? "✅ PASS" : "❌ FAIL"}`);
+
       const result: StressTestResult = {
         scenarioId: activeScenario.id,
         startTime: stressTestStartTime,
@@ -178,10 +196,8 @@ const StressPanel: React.FC<StressPanelProps> = ({
         maxWaitTime,
         averageTravelTime,
         elevatorUtilization,
-        success: completedRequests >= activeScenario.expectedRequests * 0.6, // 60% completion rate for quick tests
-        notes: `Test ran for ${Math.floor(
-          (currentTime - stressTestStartTime) / 60
-        )} minutes`,
+        success,
+        notes: `Test ran for ${Math.floor(elapsedTime / 60)} minutes`,
       };
 
       setStressTestResults((prev) => [result, ...prev.slice(0, 9)]); // Keep last 10 results
@@ -208,6 +224,7 @@ const StressPanel: React.FC<StressPanelProps> = ({
     setIsStressTestRunning(false);
     setStressTestProgress(0);
     setStressTestStartTime(0);
+    setElapsedTime(0); // Reset elapsed time
     onResetStressTest();
   };
 
@@ -216,17 +233,28 @@ const StressPanel: React.FC<StressPanelProps> = ({
    */
   useEffect(() => {
     if (isStressTestRunning && activeScenario) {
-      const elapsed = currentTime - stressTestStartTime;
-      const progress = Math.min((elapsed / activeScenario.duration) * 100, 100);
-      setStressTestProgress(progress);
+      // Update progress every 100ms for smooth display
+      const interval = setInterval(() => {
+        const elapsed = (Date.now() - stressTestStartTime) / 1000; // Convert to seconds
+        setElapsedTime(elapsed);
+        const progress = Math.min(
+          (elapsed / activeScenario.duration) * 100,
+          100
+        );
+        setStressTestProgress(progress);
 
-      // Auto-stop when duration is reached
-      if (elapsed >= activeScenario.duration) {
-        handleStopStressTest();
-      }
+        // Auto-stop when duration is reached
+        if (elapsed >= activeScenario.duration) {
+          handleStopStressTest();
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
     }
+
+    // Return undefined for the case when the condition is false
+    return undefined;
   }, [
-    currentTime,
     isStressTestRunning,
     activeScenario,
     stressTestStartTime,
@@ -311,8 +339,7 @@ const StressPanel: React.FC<StressPanelProps> = ({
               ></div>
             </div>
             <div className="progress-text">
-              {formatTime(currentTime - stressTestStartTime)} /{" "}
-              {formatTime(activeScenario.duration)}(
+              {formatTime(elapsedTime)} / {formatTime(activeScenario.duration)}(
               {stressTestProgress.toFixed(1)}%)
             </div>
           </div>
@@ -436,6 +463,13 @@ const StressPanel: React.FC<StressPanelProps> = ({
                         100
                       ).toFixed(1)}
                       %)
+                    </span>
+                  </div>
+                  <div className="result-metric">
+                    <span className="metric-label">Target (60%):</span>
+                    <span className="metric-value">
+                      {Math.ceil(result.totalRequests * 0.6)}/
+                      {result.totalRequests}
                     </span>
                   </div>
                   <div className="result-metric">

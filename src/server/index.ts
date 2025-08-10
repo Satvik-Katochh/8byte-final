@@ -39,7 +39,11 @@ app.use(
 
 // Serve static files (for production)
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../client")));
+  const staticPath = path.join(__dirname, "../client");
+  console.log("📁 Serving static files from:", staticPath);
+  console.log("📁 __dirname:", __dirname);
+  console.log("📁 Process cwd:", process.cwd());
+  app.use(express.static(staticPath));
 }
 
 // Create HTTP server
