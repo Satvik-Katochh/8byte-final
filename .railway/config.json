@@ -1,7 +1,6 @@
 {
   "build": {
-    "builder": "nixpacks",
-    "buildCommand": "npm run railway:build"
+    "builder": "nixpacks"
   },
   "deploy": {
     "startCommand": "npm start"
