@@ -18,12 +18,14 @@ A sophisticated web-based elevator simulation system featuring intelligent sched
 ## 🏗️ Architecture
 
 ### Tech Stack
+
 - **Frontend**: React + TypeScript + CSS3
 - **Backend**: Node.js + Express + Socket.IO
 - **Real-time**: WebSocket communication
 - **Build**: TypeScript compilation + React build
 
 ### Project Structure
+
 ```
 elevator-simulation/
 ├── src/
@@ -42,12 +44,14 @@ elevator-simulation/
 ## 🎯 Core Algorithm
 
 ### Hybrid Aggressive Scheduler
+
 - **Multi-factor Scoring**: Distance, load, route efficiency, direction matching
 - **Priority Escalation**: Long-waiting requests get higher priority
 - **Morning Rush Optimization**: Prioritizes lobby-to-upper-floor requests
 - **Predictive Positioning**: Keeps elevators near high-traffic floors
 
 ### Performance Metrics
+
 - Average wait time
 - Maximum wait time
 - Average travel time
@@ -57,17 +61,20 @@ elevator-simulation/
 ## 🎮 Usage
 
 ### Basic Simulation
+
 1. Set number of floors and elevators
 2. Click Start to begin auto-generation
 3. Use manual request buttons (⬆️/⬇️) for specific requests
 4. Adjust simulation speed (1x to 10x)
 
 ### Peak Traffic Testing
+
 - Click "Peak Traffic" for stress testing
 - Simulates 30 floors, 6 elevators, 2 requests/second
 - Tests algorithm performance under high load
 
 ### Real-time Monitoring
+
 - Live elevator positions and directions
 - Passenger counts and door states
 - Request log with timestamps
@@ -76,6 +83,7 @@ elevator-simulation/
 ## 🚀 Quick Start
 
 ### Local Development
+
 ```bash
 # Install dependencies
 npm install
@@ -88,6 +96,7 @@ npm run dev:client   # Frontend only
 ```
 
 ### Production Build
+
 ```bash
 npm run build        # Build both server and client
 npm start           # Start production server
@@ -96,22 +105,26 @@ npm start           # Start production server
 ## 📊 Test Scenarios
 
 ### Scenario 1: Basic Operation
+
 - 5 floors, 1 elevator
 - Manual and auto requests
 - Verify smooth movement and scheduling
 
 ### Scenario 2: Peak Traffic
+
 - 30 floors, 6 elevators
 - High-frequency requests (2/sec)
 - Stress test algorithm performance
 
 ### Scenario 3: Speed Testing
+
 - Various simulation speeds (1x to 10x)
 - Performance under accelerated time
 
 ## 🔧 Configuration
 
 ### Environment Variables
+
 ```bash
 NODE_ENV=development
 PORT=8080
@@ -119,6 +132,7 @@ CLIENT_URL=http://localhost:3000
 ```
 
 ### Railway Deployment
+
 - Automatic build and deployment
 - WebSocket support enabled
 - Environment variable configuration in dashboard
