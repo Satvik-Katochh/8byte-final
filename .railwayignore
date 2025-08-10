@@ -1,9 +1,9 @@
 # Force Railway to use NIXPACKS instead of Docker
 Dockerfile
+Dockerfile.*
 .dockerignore
 docker-compose.yml
 docker-compose.yaml
-Dockerfile.*
 
 # Ignore development files
 .env
