@@ -273,9 +273,7 @@ private calculateScore(elevator: Elevator, request: Request): number {
 
 ## 📚 Documentation
 
-- **ALGORITHM_REPORT.md**: Detailed algorithm analysis and performance metrics
-- **DELIVERABLES_SUMMARY.md**: Complete project deliverables overview
-- **RAILWAY_DEPLOYMENT.md**: Step-by-step deployment guide
+- **ALGORITHM_REPORT.md**: Detailed algorithm analysis and performance metrics.
 
 ## 🤝 Contributing
 
