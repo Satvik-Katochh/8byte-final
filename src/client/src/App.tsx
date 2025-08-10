@@ -430,9 +430,7 @@ function App() {
   useEffect(() => {
     console.log(
       "🔧 App useEffect - isConnected:",
-      isConnected,
-      "simulationState:",
-      simulationState
+      isConnected
     );
     if (isConnected) {
       console.log("🔧 Initializing simulation...");
@@ -448,7 +446,6 @@ function App() {
     totalFloors,
     totalElevators,
     requestFrequency,
-    simulationState,
   ]);
 
   return (
